@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { cn } from '@/lib/utils';
 import type { Color } from '@chesskernel/shared';
 
 interface ChessClockProps {
@@ -7,13 +8,52 @@ interface ChessClockProps {
   activeColor: Color;
   isGameActive: boolean;
   orientation: Color;
+  playerName?: { top: string; bottom: string };
 }
 
 function formatTime(ms: number): string {
-  const totalSeconds = Math.ceil(ms / 1000);
+  const totalSeconds = Math.max(0, Math.ceil(ms / 1000));
   const minutes = Math.floor(totalSeconds / 60);
   const seconds = totalSeconds % 60;
   return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+}
+
+interface ClockDisplayProps {
+  ms: number;
+  isActive: boolean;
+  name?: string;
+  color: Color;
+}
+
+function ClockDisplay({ ms, isActive, name, color }: ClockDisplayProps) {
+  const isLow = ms < 10_000 && ms > 0;
+  const isDead = ms <= 0;
+
+  return (
+    <div className={cn(
+      'flex items-center justify-between px-3 py-2 rounded-lg border transition-all duration-200',
+      isActive
+        ? 'bg-card border-primary shadow-md shadow-primary/20'
+        : 'bg-muted/40 border-transparent opacity-70',
+    )}>
+      <div className="flex items-center gap-2">
+        <div className={cn(
+          'w-3 h-3 rounded-full',
+          color === 'white' ? 'bg-white border border-gray-300' : 'bg-gray-900 dark:bg-gray-100 border border-gray-600',
+        )} />
+        {name && <span className="text-xs text-muted-foreground truncate max-w-[80px]">{name}</span>}
+      </div>
+      <span className={cn(
+        'font-mono text-xl font-bold tabular-nums tracking-tight',
+        isDead && 'text-destructive',
+        isLow && !isDead && 'text-orange-500 dark:text-orange-400',
+        isActive && !isLow && !isDead && 'text-foreground',
+        !isActive && 'text-muted-foreground',
+      )}>
+        {formatTime(ms)}
+      </span>
+    </div>
+  );
 }
 
 export function ChessClock({
@@ -22,62 +62,40 @@ export function ChessClock({
   activeColor,
   isGameActive,
   orientation,
+  playerName,
 }: ChessClockProps) {
   const [displayWhite, setDisplayWhite] = useState(whiteMs);
   const [displayBlack, setDisplayBlack] = useState(blackMs);
 
-  useEffect(() => {
-    setDisplayWhite(whiteMs);
-    setDisplayBlack(blackMs);
-  }, [whiteMs, blackMs]);
+  useEffect(() => { setDisplayWhite(whiteMs); }, [whiteMs]);
+  useEffect(() => { setDisplayBlack(blackMs); }, [blackMs]);
 
   useEffect(() => {
     if (!isGameActive) return;
-
-    const interval = setInterval(() => {
-      if (activeColor === 'white') {
-        setDisplayWhite((prev) => Math.max(0, prev - 100));
-      } else {
-        setDisplayBlack((prev) => Math.max(0, prev - 100));
-      }
+    const iv = setInterval(() => {
+      if (activeColor === 'white') setDisplayWhite((p) => Math.max(0, p - 100));
+      else setDisplayBlack((p) => Math.max(0, p - 100));
     }, 100);
-
-    return () => clearInterval(interval);
+    return () => clearInterval(iv);
   }, [activeColor, isGameActive]);
 
-  const topColor = orientation === 'white' ? 'black' : 'white';
+  const topColor: Color = orientation === 'white' ? 'black' : 'white';
   const bottomColor = orientation;
 
-  const topMs = topColor === 'white' ? displayWhite : displayBlack;
-  const bottomMs = bottomColor === 'white' ? displayWhite : displayBlack;
-  const isTopActive = activeColor === topColor;
-  const isBottomActive = activeColor === bottomColor;
-
   return (
-    <div className="flex flex-col gap-2">
-      <ClockDisplay ms={topMs} isActive={isTopActive && isGameActive} />
-      <ClockDisplay ms={bottomMs} isActive={isBottomActive && isGameActive} />
-    </div>
-  );
-}
-
-function ClockDisplay({ ms, isActive }: { ms: number; isActive: boolean }) {
-  const isLow = ms < 10_000;
-  const isEmpty = ms <= 0;
-
-  return (
-    <div
-      className={`px-4 py-2 rounded-md font-mono text-2xl font-bold text-center min-w-[120px] transition-colors ${
-        isEmpty
-          ? 'bg-red-600 text-white'
-          : isLow
-            ? 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-200'
-            : isActive
-              ? 'bg-primary text-primary-foreground'
-              : 'bg-muted text-muted-foreground'
-      }`}
-    >
-      {formatTime(ms)}
+    <div className="flex flex-col gap-1.5">
+      <ClockDisplay
+        ms={topColor === 'white' ? displayWhite : displayBlack}
+        isActive={isGameActive && activeColor === topColor}
+        name={playerName?.top}
+        color={topColor}
+      />
+      <ClockDisplay
+        ms={bottomColor === 'white' ? displayWhite : displayBlack}
+        isActive={isGameActive && activeColor === bottomColor}
+        name={playerName?.bottom}
+        color={bottomColor}
+      />
     </div>
   );
 }

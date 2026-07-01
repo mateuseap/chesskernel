@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException, Logger } from '@nestjs/common';
+import { Color, MoveClassification } from '@prisma/client';
 import { PrismaService } from '../../database/prisma.service';
 import { StockfishService } from './stockfish.service';
 import { Chess } from 'chess.js';
@@ -87,11 +88,11 @@ export class AnalysisService {
       moveResults.push({
         analysisId,
         moveNumber: move.moveNumber,
-        color: move.color,
+        color: move.color as Color,
         evalCentipawns: result.score?.type === 'cp' ? result.score.value : null,
         mateIn: result.score?.type === 'mate' ? result.score.value : null,
         bestMoveUci: result.bestMove,
-        classification,
+        classification: classification as MoveClassification,
       });
 
       previousEval = currentEval;

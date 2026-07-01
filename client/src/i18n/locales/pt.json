@@ -1,0 +1,131 @@
+{
+  "nav": {
+    "play": "Jogar",
+    "leaderboard": "Placar",
+    "login": "Entrar",
+    "signUp": "Cadastrar",
+    "logout": "Sair"
+  },
+  "home": {
+    "title": "ChessKernel",
+    "subtitle": "Plataforma de xadrez gratuita e open-source. Jogue online, desafie bots e analise suas partidas.",
+    "getStarted": "Começar",
+    "playNow": "Jogar Agora",
+    "featuresTitle": "Tudo que você precisa para jogar xadrez",
+    "featuresSubtitle": "Uma experiência completa sem assinaturas, sem anúncios, sem rastreamento.",
+    "features": {
+      "realtime":  { "title": "Jogo em Tempo Real",  "desc": "Partidas ao vivo com lances instantâneos." },
+      "bots":      { "title": "vs Stockfish",         "desc": "Desafie o melhor motor de xadrez em qualquer nível." },
+      "analysis":  { "title": "Análise de Lances",    "desc": "Revisão automática com classificação de lances." },
+      "ladder":    { "title": "Classificação",        "desc": "Ratings separados para bullet, blitz, rapid e clássico." },
+      "selfhost":  { "title": "Auto-hospedagem",      "desc": "Open source e implantável na sua infraestrutura." },
+      "multilang": { "title": "Multilíngue",          "desc": "Suporte completo para inglês, português e espanhol." }
+    }
+  },
+  "play": {
+    "title": "Jogar Xadrez",
+    "online": "Online",
+    "vsBot": "vs Computador",
+    "timeControl": "Controle de Tempo",
+    "difficulty": "Dificuldade do Bot",
+    "playAs": "Jogar como",
+    "white": "Brancas",
+    "black": "Pretas",
+    "random": "Aleatório",
+    "findGame": "Encontrar Partida",
+    "searching": "Procurando",
+    "cancel": "Cancelar",
+    "playVsBot": "Jogar vs Bot",
+    "bullet": "Bullet",
+    "blitz": "Blitz",
+    "rapid": "Rápido",
+    "classical": "Clássico",
+    "chooseCategory": "Escolha um controle de tempo",
+    "difficulties": {
+      "beginner": "Iniciante",
+      "easy": "Fácil",
+      "medium": "Médio",
+      "hard": "Difícil",
+      "expert": "Expert",
+      "maximum": "Máximo"
+    }
+  },
+  "game": {
+    "offerDraw": "Oferecer Empate",
+    "resign": "Abandonar",
+    "analyzeGame": "Analisar",
+    "you": "Você",
+    "moves": "Lances",
+    "draw": "Empate",
+    "youWon": "Você Ganhou!",
+    "youLost": "Você Perdeu",
+    "loading": "Carregando partida…",
+    "drawOffered": "Empate oferecido",
+    "accept": "Aceitar",
+    "decline": "Recusar",
+    "newGame": "Nova Partida",
+    "terminations": {
+      "checkmate": "Xeque-mate",
+      "timeout": "No tempo",
+      "resignation": "Abandono",
+      "draw_agreement": "Empate por acordo",
+      "stalemate": "Afogamento",
+      "insufficient_material": "Material insuficiente",
+      "threefold_repetition": "Repetição tripla",
+      "fifty_move_rule": "Regra dos 50 lances",
+      "abandoned": "Abandonada"
+    }
+  },
+  "auth": {
+    "login": "Entrar",
+    "register": "Criar Conta",
+    "email": "E-mail",
+    "password": "Senha",
+    "username": "Usuário",
+    "welcomeBack": "Bem-vindo de volta",
+    "loginSubtitle": "Entre na sua conta ChessKernel",
+    "registerSubtitle": "Crie sua conta gratuita no ChessKernel",
+    "noAccount": "Não tem uma conta?",
+    "hasAccount": "Já tem uma conta?",
+    "signUp": "Cadastre-se",
+    "loginLink": "Entrar",
+    "loggingIn": "Entrando…",
+    "creating": "Criando conta…"
+  },
+  "leaderboard": {
+    "title": "Placar",
+    "rank": "#",
+    "player": "Jogador",
+    "rating": "Rating",
+    "games": "Partidas",
+    "winRate": "Vitórias %",
+    "loading": "Carregando…"
+  },
+  "profile": {
+    "recentGames": "Partidas Recentes",
+    "games": "partidas",
+    "vs": "vs",
+    "loading": "Carregando perfil…",
+    "notFound": "Jogador não encontrado",
+    "ratings": "Ratings"
+  },
+  "analysis": {
+    "title": "Análise",
+    "requestAnalysis": "Analisar Partida",
+    "analyzing": "Analisando com Stockfish…",
+    "failed": "Análise falhou",
+    "failedHint": "O Stockfish pode não estar instalado no servidor.",
+    "evaluation": "Avaliação",
+    "bestMove": "Melhor lance",
+    "complete": "Completo",
+    "start": "Início",
+    "arrowKeys": "Use ← → para navegar",
+    "noMoves": "Sem lances registrados",
+    "selectMove": "Navegue pelos lances para ver a avaliação",
+    "moves": "Lances"
+  },
+  "theme": {
+    "light": "Claro",
+    "dark": "Escuro"
+  }
+}

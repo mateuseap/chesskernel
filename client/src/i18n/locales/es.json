@@ -1,0 +1,131 @@
+{
+  "nav": {
+    "play": "Jugar",
+    "leaderboard": "Clasificación",
+    "login": "Iniciar sesión",
+    "signUp": "Registrarse",
+    "logout": "Cerrar sesión"
+  },
+  "home": {
+    "title": "ChessKernel",
+    "subtitle": "Plataforma de ajedrez gratuita y open-source. Juega online, desafía bots y analiza tus partidas.",
+    "getStarted": "Empezar",
+    "playNow": "Jugar Ahora",
+    "featuresTitle": "Todo lo que necesitas para jugar ajedrez",
+    "featuresSubtitle": "Una experiencia completa sin suscripciones, sin anuncios, sin rastreo.",
+    "features": {
+      "realtime":  { "title": "Juego en Vivo",      "desc": "Partidas en directo con movimientos instantáneos." },
+      "bots":      { "title": "vs Stockfish",        "desc": "Desafía al mejor motor de ajedrez en cualquier nivel." },
+      "analysis":  { "title": "Análisis de Jugadas", "desc": "Revisión automática con clasificación de jugadas." },
+      "ladder":    { "title": "Clasificación",       "desc": "Ratings separados para bullet, blitz, rapid y clásico." },
+      "selfhost":  { "title": "Auto-alojado",        "desc": "Código abierto y desplegable en tu propia infraestructura." },
+      "multilang": { "title": "Multilingüe",         "desc": "Soporte completo para inglés, portugués y español." }
+    }
+  },
+  "play": {
+    "title": "Jugar Ajedrez",
+    "online": "Online",
+    "vsBot": "vs Computadora",
+    "timeControl": "Control de Tiempo",
+    "difficulty": "Dificultad del Bot",
+    "playAs": "Jugar como",
+    "white": "Blancas",
+    "black": "Negras",
+    "random": "Aleatorio",
+    "findGame": "Buscar Partida",
+    "searching": "Buscando",
+    "cancel": "Cancelar",
+    "playVsBot": "Jugar vs Bot",
+    "bullet": "Bullet",
+    "blitz": "Blitz",
+    "rapid": "Rápido",
+    "classical": "Clásico",
+    "chooseCategory": "Elige un control de tiempo",
+    "difficulties": {
+      "beginner": "Principiante",
+      "easy": "Fácil",
+      "medium": "Medio",
+      "hard": "Difícil",
+      "expert": "Experto",
+      "maximum": "Máximo"
+    }
+  },
+  "game": {
+    "offerDraw": "Ofrecer Tablas",
+    "resign": "Rendirse",
+    "analyzeGame": "Analizar",
+    "you": "Tú",
+    "moves": "Movimientos",
+    "draw": "Tablas",
+    "youWon": "¡Ganaste!",
+    "youLost": "Perdiste",
+    "loading": "Cargando partida…",
+    "drawOffered": "Tablas ofrecidas",
+    "accept": "Aceptar",
+    "decline": "Rechazar",
+    "newGame": "Nueva Partida",
+    "terminations": {
+      "checkmate": "Jaque mate",
+      "timeout": "En tiempo",
+      "resignation": "Abandono",
+      "draw_agreement": "Tablas por acuerdo",
+      "stalemate": "Ahogado",
+      "insufficient_material": "Material insuficiente",
+      "threefold_repetition": "Triple repetición",
+      "fifty_move_rule": "Regla de los 50 movimientos",
+      "abandoned": "Abandonada"
+    }
+  },
+  "auth": {
+    "login": "Iniciar sesión",
+    "register": "Crear Cuenta",
+    "email": "Correo electrónico",
+    "password": "Contraseña",
+    "username": "Usuario",
+    "welcomeBack": "Bienvenido de nuevo",
+    "loginSubtitle": "Inicia sesión en tu cuenta ChessKernel",
+    "registerSubtitle": "Crea tu cuenta gratuita en ChessKernel",
+    "noAccount": "¿No tienes cuenta?",
+    "hasAccount": "¿Ya tienes cuenta?",
+    "signUp": "Regístrate",
+    "loginLink": "Iniciar sesión",
+    "loggingIn": "Iniciando sesión…",
+    "creating": "Creando cuenta…"
+  },
+  "leaderboard": {
+    "title": "Clasificación",
+    "rank": "#",
+    "player": "Jugador",
+    "rating": "Rating",
+    "games": "Partidas",
+    "winRate": "Victorias %",
+    "loading": "Cargando…"
+  },
+  "profile": {
+    "recentGames": "Partidas Recientes",
+    "games": "partidas",
+    "vs": "vs",
+    "loading": "Cargando perfil…",
+    "notFound": "Jugador no encontrado",
+    "ratings": "Ratings"
+  },
+  "analysis": {
+    "title": "Análisis",
+    "requestAnalysis": "Analizar Partida",
+    "analyzing": "Analizando con Stockfish…",
+    "failed": "Análisis fallido",
+    "failedHint": "Es posible que Stockfish no esté instalado en el servidor.",
+    "evaluation": "Evaluación",
+    "bestMove": "Mejor movimiento",
+    "complete": "Completo",
+    "start": "Inicio",
+    "arrowKeys": "Usa ← → para navegar",
+    "noMoves": "Sin movimientos registrados",
+    "selectMove": "Navega por los movimientos para ver la evaluación",
+    "moves": "Movimientos"
+  },
+  "theme": {
+    "light": "Claro",
+    "dark": "Oscuro"
+  }
+}

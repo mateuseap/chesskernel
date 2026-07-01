@@ -1,0 +1,131 @@
+{
+  "nav": {
+    "play": "Play",
+    "leaderboard": "Leaderboard",
+    "login": "Log In",
+    "signUp": "Sign Up",
+    "logout": "Log Out"
+  },
+  "home": {
+    "title": "ChessKernel",
+    "subtitle": "Free, open-source chess platform. Play online, challenge bots, and analyze your games.",
+    "getStarted": "Get Started",
+    "playNow": "Play Now",
+    "featuresTitle": "Everything you need to play chess",
+    "featuresSubtitle": "A full chess experience with no subscriptions, no ads, no tracking.",
+    "features": {
+      "realtime":  { "title": "Real-time Play",   "desc": "Live games with instant moves. No delays, no lag." },
+      "bots":      { "title": "Play vs Stockfish", "desc": "Challenge the world's strongest engine at any difficulty." },
+      "analysis":  { "title": "Move Analysis",     "desc": "Automatic post-game review with move classifications." },
+      "ladder":    { "title": "Leaderboards",      "desc": "Separate ratings for bullet, blitz, rapid, and classical." },
+      "selfhost":  { "title": "Self-Hosted",       "desc": "Open source and deployable on your own infrastructure." },
+      "multilang": { "title": "Multilingual",      "desc": "Full support for English, Portuguese, and Spanish." }
+    }
+  },
+  "play": {
+    "title": "Play Chess",
+    "online": "Online",
+    "vsBot": "vs Computer",
+    "timeControl": "Time Control",
+    "difficulty": "Bot Difficulty",
+    "playAs": "Play as",
+    "white": "White",
+    "black": "Black",
+    "random": "Random",
+    "findGame": "Find Game",
+    "searching": "Searching",
+    "cancel": "Cancel",
+    "playVsBot": "Play vs Bot",
+    "bullet": "Bullet",
+    "blitz": "Blitz",
+    "rapid": "Rapid",
+    "classical": "Classical",
+    "chooseCategory": "Choose a time control",
+    "difficulties": {
+      "beginner": "Beginner",
+      "easy": "Easy",
+      "medium": "Medium",
+      "hard": "Hard",
+      "expert": "Expert",
+      "maximum": "Maximum"
+    }
+  },
+  "game": {
+    "offerDraw": "Offer Draw",
+    "resign": "Resign",
+    "analyzeGame": "Analyze",
+    "you": "You",
+    "moves": "Moves",
+    "draw": "Draw",
+    "youWon": "You Won!",
+    "youLost": "You Lost",
+    "loading": "Loading game…",
+    "drawOffered": "Draw offered",
+    "accept": "Accept",
+    "decline": "Decline",
+    "newGame": "New Game",
+    "terminations": {
+      "checkmate": "Checkmate",
+      "timeout": "On time",
+      "resignation": "Resignation",
+      "draw_agreement": "Draw by agreement",
+      "stalemate": "Stalemate",
+      "insufficient_material": "Insufficient material",
+      "threefold_repetition": "Threefold repetition",
+      "fifty_move_rule": "50-move rule",
+      "abandoned": "Abandoned"
+    }
+  },
+  "auth": {
+    "login": "Log In",
+    "register": "Create Account",
+    "email": "Email",
+    "password": "Password",
+    "username": "Username",
+    "welcomeBack": "Welcome back",
+    "loginSubtitle": "Sign in to your ChessKernel account",
+    "registerSubtitle": "Create your free ChessKernel account",
+    "noAccount": "Don't have an account?",
+    "hasAccount": "Already have an account?",
+    "signUp": "Sign up",
+    "loginLink": "Log in",
+    "loggingIn": "Signing in…",
+    "creating": "Creating account…"
+  },
+  "leaderboard": {
+    "title": "Leaderboard",
+    "rank": "#",
+    "player": "Player",
+    "rating": "Rating",
+    "games": "Games",
+    "winRate": "Win %",
+    "loading": "Loading…"
+  },
+  "profile": {
+    "recentGames": "Recent Games",
+    "games": "games",
+    "vs": "vs",
+    "loading": "Loading profile…",
+    "notFound": "Player not found",
+    "ratings": "Ratings"
+  },
+  "analysis": {
+    "title": "Analysis",
+    "requestAnalysis": "Analyze Game",
+    "analyzing": "Analyzing with Stockfish…",
+    "failed": "Analysis failed",
+    "failedHint": "Stockfish may not be installed on the server.",
+    "evaluation": "Evaluation",
+    "bestMove": "Best move",
+    "complete": "Complete",
+    "start": "Start",
+    "arrowKeys": "Use ← → to navigate",
+    "noMoves": "No moves recorded",
+    "selectMove": "Navigate through moves to see evaluation",
+    "moves": "Moves"
+  },
+  "theme": {
+    "light": "Light",
+    "dark": "Dark"
+  }
+}

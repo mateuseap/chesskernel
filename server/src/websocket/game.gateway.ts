@@ -15,11 +15,13 @@ import { GamesService } from '../modules/games/games.service';
 import { GameStateService } from '../modules/games/game-state.service';
 import { ClockService } from '../modules/games/clock.service';
 import { MatchmakingService } from '../modules/matchmaking/matchmaking.service';
+import { BotsService } from '../modules/bots/bots.service';
 import { PresenceService } from './presence.service';
 import type {
   GameMovePayload,
   GameIdPayload,
   QueueJoinPayload,
+  BotDifficulty,
 } from '@chesskernel/shared';
 
 @WebSocketGateway({
@@ -38,6 +40,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     private readonly gameStateService: GameStateService,
     private readonly clockService: ClockService,
     private readonly matchmakingService: MatchmakingService,
+    private readonly botsService: BotsService,
     private readonly presenceService: PresenceService,
   ) {}
 
@@ -81,6 +84,21 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @MessageBody() payload: GameIdPayload,
   ) {
     socket.join(`game:${payload.gameId}`);
+
+    // Check if game already ended (reconnect after refresh)
+    const game = await this.gamesService.getGame(payload.gameId);
+    if (game.status === 'ended') {
+      socket.emit('game:over', {
+        result: game.result ?? 'draw',
+        termination: game.termination ?? 'unknown',
+        winner: game.result === 'draw' ? null : game.result,
+        pgn: game.pgn ?? '',
+        whiteRatingDelta: 0,
+        blackRatingDelta: 0,
+      });
+      return;
+    }
+
     const state = await this.gameStateService.getState(payload.gameId);
     if (state) {
       socket.emit('game:clock', {
@@ -197,12 +215,21 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const nextColor = playerColor === 'white' ? 'black' : 'white';
     const nextTimeMs = nextColor === 'white' ? result.clock.white : result.clock.black;
 
-    this.clockService.scheduleTimeout(
-      payload.gameId,
-      nextColor,
-      nextTimeMs,
-      (gId, loser) => this.handleTimeout(gId, loser),
-    );
+    if (game.isBotGame) {
+      const delay = 300 + Math.floor(Math.random() * 600);
+      setTimeout(() => {
+        this.triggerBotMove(payload.gameId, nextColor, game.botDifficulty ?? 'medium', game.incrementMs, result.clock).catch(
+          (err) => this.logger.error(`Bot move error: ${(err as Error).message}`),
+        );
+      }, delay);
+    } else {
+      this.clockService.scheduleTimeout(
+        payload.gameId,
+        nextColor,
+        nextTimeMs,
+        (gId, loser) => this.handleTimeout(gId, loser),
+      );
+    }
   }
 
   @SubscribeMessage('game:resign')
@@ -309,6 +336,61 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
   async handleQueueLeave(@ConnectedSocket() socket: Socket) {
     const userId = socket.data.userId as string;
     await this.matchmakingService.leaveQueue(userId);
+  }
+
+  private async triggerBotMove(
+    gameId: string,
+    botColor: 'white' | 'black',
+    difficulty: string,
+    incrementMs: number,
+    prevClock: { white: number; black: number },
+  ) {
+    const botResult = await this.botsService.makeBotMove(
+      gameId,
+      botColor,
+      difficulty as BotDifficulty,
+      incrementMs,
+    );
+    if (!botResult) return;
+
+    const state = await this.gameStateService.getState(gameId);
+    const clock = state
+      ? { white: state.whiteTimeMs, black: state.blackTimeMs, activeColor: state.activeColor, lastUpdatedAt: state.lastMoveAt }
+      : prevClock;
+
+    const freshGame = await this.gamesService.getGame(gameId);
+    const timeLeftMs = botColor === 'white' ? (state?.whiteTimeMs ?? 0) : (state?.blackTimeMs ?? 0);
+    const moveCount = freshGame.moves.length;
+
+    const chess = new Chess(botResult.fen);
+
+    const broadcastPayload = {
+      move: {
+        moveNumber: Math.ceil(moveCount / 2),
+        color: botColor,
+        san: botResult.san,
+        uci: botResult.uci,
+        fenAfter: botResult.fen,
+        timeLeftMs,
+      },
+      fen: botResult.fen,
+      clock,
+      isCheck: chess.isCheck(),
+      isCheckmate: chess.isCheckmate(),
+      isStalemate: chess.isStalemate(),
+      isDraw: chess.isDraw(),
+    };
+
+    this.server.to(`game:${gameId}`).emit('game:move:broadcast', broadcastPayload);
+
+    if (chess.isCheckmate()) {
+      await this.handleGameOver(gameId, botColor, 'checkmate');
+    } else if (chess.isStalemate()) {
+      await this.handleGameOver(gameId, null, 'stalemate');
+    } else if (chess.isDraw()) {
+      const term = chess.isThreefoldRepetition() ? 'threefold_repetition' : chess.isInsufficientMaterial() ? 'insufficient_material' : 'fifty_move_rule';
+      await this.handleGameOver(gameId, null, term);
+    }
   }
 
   private async handleTimeout(gameId: string, losingColor: 'white' | 'black') {
