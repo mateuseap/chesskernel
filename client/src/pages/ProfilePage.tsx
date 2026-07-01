@@ -51,7 +51,6 @@ export function ProfilePage() {
           <div className="px-4 py-3 border-b font-semibold">Recent Games</div>
           {history.games.slice(0, 10).map((game: any) => {
             const isWhite = game.white?.id === user.id;
-            const playerSide = isWhite ? game.white : game.black;
             const opponentSide = isWhite ? game.black : game.white;
             const won = game.result === (isWhite ? 'white' : 'black');
             const drew = game.result === 'draw';

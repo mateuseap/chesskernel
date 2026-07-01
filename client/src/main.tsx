@@ -5,8 +5,6 @@ import { RouterProvider } from 'react-router-dom';
 import { router } from './app/router';
 import './i18n';
 import './app/globals.css';
-import { useThemeStore } from './stores/theme.store';
-
 // Apply persisted theme before first render to avoid flash
 const savedTheme = (() => {
   try {

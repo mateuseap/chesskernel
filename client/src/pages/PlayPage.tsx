@@ -7,6 +7,13 @@ import { TIME_CONTROLS } from '@chesskernel/shared';
 import { cn } from '@/lib/utils';
 import type { TimeControlConfig } from '@chesskernel/shared';
 
+function fmtMs(ms: number): string {
+  const totalSec = Math.floor(ms / 1000);
+  const m = Math.floor(totalSec / 60);
+  const s = totalSec % 60;
+  return s === 0 ? `${m}:00` : `${m}:${s.toString().padStart(2, '0')}`;
+}
+
 const TIME_CONTROL_GROUPS: Record<string, { icon: string; keys: string[] }> = {
   Bullet:    { icon: '⚡', keys: ['bullet_1_0', 'bullet_1_1', 'bullet_2_1'] },
   Blitz:     { icon: '🔥', keys: ['blitz_3_0', 'blitz_3_2', 'blitz_5_0', 'blitz_5_3'] },
@@ -101,14 +108,16 @@ export function PlayPage() {
                     key={key}
                     onClick={() => setSelectedTc(key)}
                     className={cn(
-                      'flex flex-col items-center py-3 px-2 rounded-xl border-2 transition-all text-sm font-bold',
+                      'flex flex-col items-center py-3 px-2 rounded-xl border-2 transition-all',
                       isSelected
                         ? 'border-primary bg-primary/10 text-primary dark:bg-primary/20'
                         : 'border-border bg-card hover:border-primary/50 hover:bg-muted text-foreground',
                     )}
                   >
-                    <span className="text-base">{ctrl.label}</span>
-                    <span className="text-[10px] font-normal text-muted-foreground mt-0.5 capitalize">{ctrl.type}</span>
+                    <span className="text-sm font-bold tabular-nums">{fmtMs(ctrl.initialTimeMs)}</span>
+                    {ctrl.incrementMs > 0 && (
+                      <span className="text-[10px] font-medium text-muted-foreground">+{ctrl.incrementMs / 1000}s</span>
+                    )}
                   </button>
                 );
               })}
@@ -171,7 +180,7 @@ export function PlayPage() {
             <div className="flex items-center gap-4 bg-card border rounded-xl p-4">
               <div className="flex items-center gap-3 flex-1">
                 <div className="w-2.5 h-2.5 rounded-full bg-primary animate-pulse" />
-                <span className="text-sm font-medium">{t('play.searching')} · {tc.label}</span>
+                <span className="text-sm font-medium">{t('play.searching')} · {fmtMs(tc.initialTimeMs)}{tc.incrementMs > 0 ? ` +${tc.incrementMs / 1000}s` : ''}</span>
               </div>
               <button onClick={handleQueueLeave} className="text-sm text-destructive hover:underline font-medium">
                 {t('play.cancel')}
@@ -182,7 +191,7 @@ export function PlayPage() {
               onClick={handleQueueJoin}
               className="w-full bg-primary text-primary-foreground py-4 rounded-xl text-base font-bold hover:bg-primary/90 transition-colors shadow-lg shadow-primary/25"
             >
-              {t('play.findGame')} · {tc.label}
+              {t('play.findGame')} · {fmtMs(tc.initialTimeMs)}{tc.incrementMs > 0 ? ` +${tc.incrementMs / 1000}s` : ''}
             </button>
           )
         ) : (
@@ -190,7 +199,7 @@ export function PlayPage() {
             onClick={handleBotGame}
             className="w-full bg-primary text-primary-foreground py-4 rounded-xl text-base font-bold hover:bg-primary/90 transition-colors shadow-lg shadow-primary/25"
           >
-            {t('play.playVsBot')} · {tc.label}
+            {t('play.playVsBot')} · {fmtMs(tc.initialTimeMs)}{tc.incrementMs > 0 ? ` +${tc.incrementMs / 1000}s` : ''}
           </button>
         )}
       </div>

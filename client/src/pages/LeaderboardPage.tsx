@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { api } from '@/services/api';
 import type { TimeControl } from '@chesskernel/shared';
 
 export function LeaderboardPage() {
   const [timeControl, setTimeControl] = useState<TimeControl>('blitz');
+  const { t } = useTranslation();
 
   const { data, isLoading } = useQuery({
     queryKey: ['leaderboard', timeControl],
@@ -14,7 +16,7 @@ export function LeaderboardPage() {
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
-      <h1 className="text-3xl font-bold">Leaderboard</h1>
+      <h1 className="text-3xl font-bold">{t('nav.leaderboard')}</h1>
 
       <div className="flex gap-2">
         {(['bullet', 'blitz', 'rapid', 'classical'] as TimeControl[]).map((tc) => (

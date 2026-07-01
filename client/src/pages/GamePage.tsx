@@ -1,7 +1,6 @@
 import { useEffect, useCallback, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Chess } from 'chess.js';
 import { ChessBoard } from '@/components/chess/ChessBoard';
 import { ChessClock } from '@/components/chess/ChessClock';
 import { useGameStore } from '@/stores/game.store';
@@ -10,6 +9,8 @@ import { getSocket } from '@/services/socket';
 import { api } from '@/services/api';
 import { cn } from '@/lib/utils';
 import type { Square, GameOverPayload, MoveBroadcastPayload } from '@chesskernel/shared';
+
+type Sq = string;
 
 export function GamePage() {
   const { gameId } = useParams<{ gameId: string }>();
@@ -81,45 +82,45 @@ export function GamePage() {
     };
   }, [gameId, user]);
 
-  const getLegalMoves = useCallback((sq: Square): Square[] => {
+  const getLegalMoves = useCallback((sq: Sq): string[] => {
     if (!isMyTurn) return [];
-    return chess.moves({ square: sq, verbose: true }).map((m) => m.to as Square);
+    return chess.moves({ square: sq as Square, verbose: true }).map((m) => m.to as string);
   }, [chess, isMyTurn]);
 
-  const sendMove = useCallback((from: Square, to: Square, promotion?: string) => {
+  const sendMove = useCallback((from: Sq, to: Sq, promotion?: string) => {
     if (!gameId) return;
     const prevFen = chess.fen();
-    const ok = applyMoveOptimistic(from, to, promotion);
+    const ok = applyMoveOptimistic(from as Square, to as Square, promotion);
     if (!ok) return;
     const socket = getSocket();
     socket.emit('game:move', { gameId, from, to, promotion });
     socket.once('game:move:rejected', () => revertOptimistic(prevFen));
   }, [gameId, chess, applyMoveOptimistic, revertOptimistic]);
 
-  const handleSquareClick = useCallback((sq: Square) => {
+  const handleSquareClick = useCallback((sq: Sq) => {
     if (!isMyTurn || !gameId) return;
     if (!selectedSquare) {
-      const piece = chess.get(sq);
-      if (piece && piece.color === myColor?.[0]) selectSquare(sq);
+      const piece = chess.get(sq as Square);
+      if (piece && piece.color === myColor?.[0]) selectSquare(sq as Square);
       return;
     }
     if (selectedSquare === sq) { selectSquare(null); return; }
-    const moves = chess.moves({ square: selectedSquare as Square, verbose: true });
-    const target = moves.find((m) => m.to === sq);
+    const legalMoves = chess.moves({ square: selectedSquare as Square, verbose: true });
+    const target = legalMoves.find((m) => m.to === sq);
     if (!target) {
-      const piece = chess.get(sq);
-      selectSquare(piece && piece.color === myColor?.[0] ? sq : null);
+      const piece = chess.get(sq as Square);
+      selectSquare(piece && piece.color === myColor?.[0] ? sq as Square : null);
       return;
     }
     const needsPromo = target.piece === 'p' && ((myColor === 'white' && sq[1] === '8') || (myColor === 'black' && sq[1] === '1'));
-    sendMove(selectedSquare as Square, sq, needsPromo ? 'q' : undefined);
+    sendMove(selectedSquare as Sq, sq, needsPromo ? 'q' : undefined);
     selectSquare(null);
   }, [selectedSquare, chess, isMyTurn, myColor, gameId, sendMove]);
 
-  const handleDrop = useCallback((from: Square, to: Square) => {
+  const handleDrop = useCallback((from: Sq, to: Sq) => {
     if (!isMyTurn || !gameId) return;
-    const moves = chess.moves({ square: from, verbose: true });
-    const target = moves.find((m) => m.to === to);
+    const legalMoves = chess.moves({ square: from as Square, verbose: true });
+    const target = legalMoves.find((m) => m.to === to);
     if (!target) return;
     const needsPromo = target.piece === 'p' && ((myColor === 'white' && to[1] === '8') || (myColor === 'black' && to[1] === '1'));
     sendMove(from, to, needsPromo ? 'q' : undefined);
@@ -144,9 +145,9 @@ export function GamePage() {
 
   const orientation = myColor ?? 'white';
   const lastMove = gameState.moves.length > 0
-    ? { from: gameState.moves.at(-1)!.uci.substring(0, 2) as Square, to: gameState.moves.at(-1)!.uci.substring(2, 4) as Square }
+    ? { from: gameState.moves.at(-1)!.uci.substring(0, 2), to: gameState.moves.at(-1)!.uci.substring(2, 4) }
     : null;
-  const legalSquares = selectedSquare ? getLegalMoves(selectedSquare as Square) : [];
+  const legalSquares = selectedSquare ? getLegalMoves(selectedSquare as Sq) : [];
   const isActive = gameState.status === 'active' && !gameOver;
 
   const opponent = orientation === 'white' ? gameState.black : gameState.white;
@@ -243,7 +244,7 @@ export function GamePage() {
               </div>
             )}
             <div className="flex gap-2 pt-1">
-              <button onClick={() => navigate(`/analysis/${gameOver}`)} className="flex-1 text-primary text-sm hover:underline">
+              <button onClick={() => navigate(`/analysis/${gameId}`)} className="flex-1 text-primary text-sm hover:underline">
                 {t('game.analyzeGame')}
               </button>
               <button onClick={() => navigate('/play')} className="flex-1 bg-primary text-primary-foreground text-sm px-3 py-1.5 rounded-md hover:bg-primary/90 transition-colors">
