@@ -110,6 +110,23 @@ export function GamePage() {
     socket.once('game:move:rejected', () => revertOptimistic(prevFen));
   }, [gameId, chess, applyMoveOptimistic, revertOptimistic, triggerIllegalFlash]);
 
+  // When king is selected and user clicks/drops on own rook, remap to castling destination.
+  // chess.com supports this "king captures rook" convention; chess.js does not — we handle it.
+  const resolveCastleTarget = useCallback((from: Sq, to: Sq): Sq => {
+    const movingPiece = chess.get(from as Square);
+    const targetPiece = chess.get(to as Square);
+    if (
+      movingPiece?.type === 'k' &&
+      targetPiece?.type === 'r' &&
+      targetPiece?.color === movingPiece?.color
+    ) {
+      const rank = to[1];
+      // Rook on h-file → castle kingside (king goes to g), a-file → queenside (king goes to c)
+      return (to[0] >= 'e' ? 'g' : 'c') + rank as Sq;
+    }
+    return to;
+  }, [chess]);
+
   const handleSquareClick = useCallback((sq: Sq) => {
     if (!isMyTurn || !gameId) return;
     if (!selectedSquare) {
@@ -119,27 +136,29 @@ export function GamePage() {
     }
     if (selectedSquare === sq) { selectSquare(null); return; }
     const legalMoves = chess.moves({ square: selectedSquare as Square, verbose: true });
-    const target = legalMoves.find((m) => m.to === sq);
+    const resolvedSq = resolveCastleTarget(selectedSquare, sq);
+    const target = legalMoves.find((m) => m.to === resolvedSq);
     if (!target) {
       const piece = chess.get(sq as Square);
       selectSquare(piece && piece.color === myColor?.[0] ? sq as Square : null);
       return;
     }
-    const needsPromo = target.piece === 'p' && ((myColor === 'white' && sq[1] === '8') || (myColor === 'black' && sq[1] === '1'));
-    sendMove(selectedSquare as Sq, sq, needsPromo ? 'q' : undefined);
+    const needsPromo = target.piece === 'p' && ((myColor === 'white' && resolvedSq[1] === '8') || (myColor === 'black' && resolvedSq[1] === '1'));
+    sendMove(selectedSquare as Sq, resolvedSq, needsPromo ? 'q' : undefined);
     selectSquare(null);
-  }, [selectedSquare, chess, isMyTurn, myColor, gameId, sendMove]);
+  }, [selectedSquare, chess, isMyTurn, myColor, gameId, sendMove, resolveCastleTarget]);
 
   const handleDrop = useCallback((from: Sq, to: Sq): boolean => {
     if (!isMyTurn || !gameId) { triggerIllegalFlash(); return false; }
     const legalMoves = chess.moves({ square: from as Square, verbose: true });
-    const target = legalMoves.find((m) => m.to === to);
+    const resolvedTo = resolveCastleTarget(from, to);
+    const target = legalMoves.find((m) => m.to === resolvedTo);
     if (!target) { triggerIllegalFlash(); return false; }
-    const needsPromo = target.piece === 'p' && ((myColor === 'white' && to[1] === '8') || (myColor === 'black' && to[1] === '1'));
-    sendMove(from, to, needsPromo ? 'q' : undefined);
+    const needsPromo = target.piece === 'p' && ((myColor === 'white' && resolvedTo[1] === '8') || (myColor === 'black' && resolvedTo[1] === '1'));
+    sendMove(from, resolvedTo, needsPromo ? 'q' : undefined);
     selectSquare(null);
     return true;
-  }, [chess, isMyTurn, myColor, gameId, sendMove, triggerIllegalFlash]);
+  }, [chess, isMyTurn, myColor, gameId, sendMove, triggerIllegalFlash, resolveCastleTarget]);
 
   const handleResign = () => { if (gameId) getSocket().emit('game:resign', { gameId }); };
   const handleDrawOffer = () => { if (gameId) getSocket().emit('game:draw:offer', { gameId }); };
