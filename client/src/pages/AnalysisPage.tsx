@@ -87,15 +87,12 @@ function EvalBar({ cp, mate }: { cp: number | null; mate: number | null }) {
     ? `M${Math.abs(mate)}`
     : `${Math.abs((cp ?? 0) / 100).toFixed(1)}`;
 
-  const labelColor  = whiteWinning ? '#262421' : '#f0ede0';
-  const labelBg     = whiteWinning ? 'rgba(240,237,224,0.15)' : 'rgba(38,36,33,0.15)';
-
   return (
     <div
       className="relative w-full h-full rounded-sm overflow-hidden"
       style={{ backgroundColor: '#262421' }}
     >
-      {/* White portion — animates from bottom */}
+      {/* White portion */}
       <div
         className="absolute bottom-0 left-0 right-0"
         style={{
@@ -105,22 +102,25 @@ function EvalBar({ cp, mate }: { cp: number | null; mate: number | null }) {
         }}
       />
 
-      {/* Score label — pinned to the far end of the WINNING side for maximum readability */}
+      {/* Score label — solid pill pinned to the far end of the winning side */}
       <div
         className="absolute left-0 right-0 flex justify-center pointer-events-none z-10"
-        style={whiteWinning ? { bottom: 6 } : { top: 6 }}
+        style={whiteWinning ? { bottom: 4 } : { top: 4 }}
       >
         <span
           style={{
-            color: labelColor,
-            backgroundColor: labelBg,
-            fontSize: 11,
+            display: 'block',
+            // Contrast: white wins → dark text on cream bg; black wins → light text on dark bg
+            color:           whiteWinning ? '#1a1a18' : '#f0ede0',
+            backgroundColor: whiteWinning ? '#dbd8cc' : '#3a3734',
+            fontSize: 10,
             fontWeight: 800,
             lineHeight: 1,
             letterSpacing: '-0.02em',
-            padding: '2px 3px',
-            borderRadius: 2,
+            padding: '2px 4px',
+            borderRadius: 3,
             fontVariantNumeric: 'tabular-nums',
+            whiteSpace: 'nowrap',
           }}
         >
           {label}

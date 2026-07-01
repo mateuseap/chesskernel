@@ -20,7 +20,15 @@ export function PieceIcon({ type, color, size = 22 }: PieceIconProps) {
       viewBox="0 0 45 45"
       width={size}
       height={size}
-      style={{ display: 'inline-block', verticalAlign: 'middle', flexShrink: 0 }}
+      style={{
+        display: 'inline-block',
+        verticalAlign: 'middle',
+        flexShrink: 0,
+        // Black pieces: glow so they stay visible on dark backgrounds
+        filter: color === 'black'
+          ? 'drop-shadow(0 0 1.5px rgba(255,255,255,0.55)) drop-shadow(0 0 0.5px rgba(255,255,255,0.8))'
+          : 'drop-shadow(0 0 1px rgba(0,0,0,0.45))',
+      }}
     >
       {paths}
     </svg>

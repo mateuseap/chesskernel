@@ -17,37 +17,45 @@ const CLS: Record<string, { bg: string; text: string; icon: string; sqColor: str
   miss:       { bg: '#ca3431', text: '#fff', icon: '×',   sqColor: 'rgba(202,52,49,0.45)' },
 };
 
-// Circular badge overlaid on the destination square — bottom-right corner
-function SquareBadge({ square, cls, orientation }: {
-  square: string; cls: string; orientation: 'white' | 'black';
-}) {
-  const meta = CLS[cls];
-  if (!meta || !meta.icon) return null;
-  const col = square.charCodeAt(0) - 97;
-  const row = parseInt(square[1]) - 1;
-  const rightPct = orientation === 'white' ? (7 - col) * 12.5 : col * 12.5;
-  const bottomPct = orientation === 'white' ? row * 12.5 : (7 - row) * 12.5;
-  return (
-    <div
-      className="absolute pointer-events-none flex items-center justify-center font-black"
-      style={{
-        right: `calc(${rightPct}% + 2px)`,
-        bottom: `calc(${bottomPct}% + 2px)`,
-        width: 22, height: 22,
-        borderRadius: '50%',
-        backgroundColor: meta.bg,
-        color: meta.text,
-        fontSize: meta.icon.length > 1 ? 7 : 10,
-        lineHeight: 1,
-        zIndex: 20,
-        boxShadow: '0 1px 5px rgba(0,0,0,0.55)',
-        border: '1.5px solid rgba(255,255,255,0.3)',
-      }}
-    >
-      {meta.icon}
-    </div>
-  );
-}
+// SVG icon paths for each classification badge (used inside the ArrowLayer SVG)
+// Viewbox per icon: 0 0 10 10
+const BADGE_ICONS: Record<string, React.ReactNode> = {
+  brilliant: (
+    <>
+      <text x="5" y="7.8" textAnchor="middle" fontSize="6.5" fontWeight="900" fill="#fff" fontFamily="monospace">!!</text>
+    </>
+  ),
+  great: (
+    <text x="5" y="7.8" textAnchor="middle" fontSize="7.5" fontWeight="900" fill="#fff" fontFamily="monospace">!</text>
+  ),
+  best: (
+    // Star
+    <path d="M5,1.2 L6.18,4.09 L9.27,4.09 L6.8,5.91 L7.73,8.8 L5,7.04 L2.27,8.8 L3.2,5.91 L0.73,4.09 L3.82,4.09 Z" fill="#fff" />
+  ),
+  excellent: (
+    // Checkmark
+    <path d="M1.5,5.2 L3.8,7.8 L8.5,2.2" stroke="#fff" strokeWidth="1.8" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+  ),
+  book: (
+    <text x="5" y="7.8" textAnchor="middle" fontSize="7" fontWeight="900" fill="#fff" fontFamily="serif">B</text>
+  ),
+  inaccuracy: (
+    <text x="5" y="7.8" textAnchor="middle" fontSize="5.5" fontWeight="900" fill="#222" fontFamily="monospace">?!</text>
+  ),
+  mistake: (
+    <text x="5" y="7.8" textAnchor="middle" fontSize="7.5" fontWeight="900" fill="#fff" fontFamily="monospace">?</text>
+  ),
+  blunder: (
+    <text x="5" y="7.8" textAnchor="middle" fontSize="5.5" fontWeight="900" fill="#fff" fontFamily="monospace">??</text>
+  ),
+  miss: (
+    // X cross
+    <>
+      <line x1="2.5" y1="2.5" x2="7.5" y2="7.5" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" />
+      <line x1="7.5" y1="2.5" x2="2.5" y2="7.5" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" />
+    </>
+  ),
+};
 
 // ─── Custom arrow overlay ─────────────────────────────────────────────────────
 
@@ -74,11 +82,15 @@ function ArrowLayer({
   previewFrom,
   previewTo,
   orientation,
+  badgeSquare,
+  badgeCls,
 }: {
   arrows: ArrowDef[];
   previewFrom: string | null;
   previewTo: string | null;
   orientation: 'white' | 'black';
+  badgeSquare?: string | null;
+  badgeCls?: string | null;
 }) {
   const all: (ArrowDef & { preview?: boolean })[] = [
     ...arrows,
@@ -184,6 +196,26 @@ function ArrowLayer({
           />
         );
       })}
+
+      {/* Classification badge — rendered in SVG coords, perfectly aligned to square */}
+      {badgeSquare && badgeCls && (() => {
+        const meta = CLS[badgeCls];
+        const icon = BADGE_ICONS[badgeCls];
+        if (!meta || !icon) return null;
+        const col = badgeSquare.charCodeAt(0) - 97;
+        const row = parseInt(badgeSquare[1]) - 1;
+        // Bottom-right corner of the destination square in SVG coords
+        const cx = orientation === 'white' ? col + 0.82 : (7 - col) + 0.18;
+        const cy = orientation === 'white' ? (7 - row) + 0.82 : row + 0.18;
+        const r  = 0.38; // radius in viewBox units
+        return (
+          <g key="badge" transform={`translate(${cx - r}, ${cy - r}) scale(${r * 2 / 10})`} style={{ pointerEvents: 'none' }}>
+            <circle cx="5" cy="5" r="5" fill={meta.bg} />
+            <circle cx="5" cy="5" r="5" fill="none" stroke="rgba(255,255,255,0.35)" strokeWidth="0.8" />
+            {icon}
+          </g>
+        );
+      })()}
     </svg>
   );
 }
@@ -358,18 +390,15 @@ export function ChessBoard({
         animationDuration={0}
       />
 
-      {/* Full custom SVG arrow overlay — handles straight + L-shaped knight arrows */}
+      {/* SVG overlay: arrows + classification badge — all in square-coordinate space */}
       <ArrowLayer
         arrows={allArrows}
         previewFrom={previewFrom !== previewTo ? previewFrom : null}
         previewTo={previewFrom !== previewTo ? previewTo : null}
         orientation={orientation}
+        badgeSquare={lastMove?.to ?? null}
+        badgeCls={moveClassification ?? null}
       />
-
-      {/* Classification badge overlay on destination square */}
-      {lastMove?.to && moveClassification && (
-        <SquareBadge square={lastMove.to} cls={moveClassification} orientation={orientation} />
-      )}
     </div>
   );
 }
