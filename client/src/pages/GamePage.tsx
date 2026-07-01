@@ -59,13 +59,17 @@ export function GamePage() {
     });
 
     const socket = getSocket();
-    socket.emit('game:spectate', { gameId });
 
     const onMove = (p: MoveBroadcastPayload) => { applyServerMove(p.move, p.fen, p.clock); };
     const onClock = (c: any) => { updateClock(c); };
     const onOver = (p: GameOverPayload) => { setGameOver(p); };
     const onDrawOffered = ({ byColor }: { byColor: 'white' | 'black' }) => { setDrawOffered(byColor); };
     const onDrawDeclined = () => { setDrawOffered(null); };
+
+    // Re-join game room on every (re)connect so the socket is always in the room
+    const onConnect = () => { socket.emit('game:spectate', { gameId }); };
+    socket.on('connect', onConnect);
+    if (socket.connected) onConnect();
 
     socket.on('game:move:broadcast', onMove);
     socket.on('game:clock', onClock);
@@ -74,6 +78,7 @@ export function GamePage() {
     socket.on('game:draw:declined', onDrawDeclined);
 
     return () => {
+      socket.off('connect', onConnect);
       socket.off('game:move:broadcast', onMove);
       socket.off('game:clock', onClock);
       socket.off('game:over', onOver);
@@ -177,7 +182,6 @@ export function GamePage() {
         </div>
 
         <ChessBoard
-          key={gameState.moves.length}
           fen={gameState.fen}
           orientation={orientation}
           selectedSquare={selectedSquare as Square | null}

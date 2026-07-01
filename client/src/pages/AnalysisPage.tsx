@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -10,21 +10,72 @@ import { cn } from '@/lib/utils';
 
 const STARTING_FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
 
-// Chess.com classification metadata
-const CLASSIFICATIONS: Record<string, { bg: string; text: string; badge: string; icon: string }> = {
-  brilliant:  { bg: '#1baaa6', text: '#fff', badge: '!!', icon: '💎' },
-  great:      { bg: '#5ba3b0', text: '#fff', badge: '!',  icon: '!' },
-  best:       { bg: '#96bc4b', text: '#fff', badge: '★',  icon: '★' },
-  excellent:  { bg: '#96bc4b', text: '#fff', badge: '✓',  icon: '✓' },
-  good:       { bg: '#7d9c40', text: '#fff', badge: '',   icon: '' },
-  book:       { bg: '#a88865', text: '#fff', badge: 'B',  icon: '📖' },
-  inaccuracy: { bg: '#f0c648', text: '#222', badge: '?!', icon: '?!' },
-  mistake:    { bg: '#e68b2c', text: '#fff', badge: '?',  icon: '?' },
-  blunder:    { bg: '#ca3431', text: '#fff', badge: '??', icon: '??' },
-  miss:       { bg: '#ca3431', text: '#fff', badge: '×',  icon: '×' },
+// Chess.com exact classification system
+const CLS: Record<string, { bg: string; text: string; badge: string; icon: string; sqColor: string }> = {
+  brilliant:  { bg: '#1baaa6', text: '#fff', badge: '!!', icon: '💎', sqColor: 'rgba(27,170,166,0.55)' },
+  great:      { bg: '#5ba3b0', text: '#fff', badge: '!',  icon: '!',  sqColor: 'rgba(91,163,176,0.55)' },
+  best:       { bg: '#96bc4b', text: '#fff', badge: '★',  icon: '★',  sqColor: 'rgba(150,188,75,0.50)' },
+  excellent:  { bg: '#96bc4b', text: '#fff', badge: '✓',  icon: '✓',  sqColor: 'rgba(150,188,75,0.40)' },
+  good:       { bg: '#7d9c40', text: '#fff', badge: '',   icon: '',   sqColor: 'rgba(150,188,75,0.28)' },
+  book:       { bg: '#a88865', text: '#fff', badge: 'B',  icon: '📖', sqColor: 'rgba(168,136,101,0.55)' },
+  inaccuracy: { bg: '#f0c648', text: '#222', badge: '?!', icon: '?!', sqColor: 'rgba(240,198,72,0.55)' },
+  mistake:    { bg: '#e68b2c', text: '#fff', badge: '?',  icon: '?',  sqColor: 'rgba(230,139,44,0.55)' },
+  blunder:    { bg: '#ca3431', text: '#fff', badge: '??', icon: '??', sqColor: 'rgba(202,52,49,0.55)' },
+  miss:       { bg: '#ca3431', text: '#fff', badge: '×',  icon: '×',  sqColor: 'rgba(202,52,49,0.45)' },
 };
 
-const BADGE_CLASSES = new Set(['brilliant', 'great', 'book', 'inaccuracy', 'mistake', 'blunder', 'miss']);
+// Small badge shown INSIDE the move button (to the right of SAN)
+function InlineBadge({ cls }: { cls?: string }) {
+  if (!cls) return null;
+  const meta = CLS[cls];
+  if (!meta || !meta.badge) return null;
+  return (
+    <span
+      className="ml-1 inline-flex items-center justify-center rounded-full shrink-0"
+      style={{
+        width: 16,
+        height: 16,
+        backgroundColor: meta.bg,
+        color: meta.text,
+        fontSize: 6.5,
+        fontWeight: 900,
+        lineHeight: 1,
+      }}
+    >
+      {meta.badge}
+    </span>
+  );
+}
+
+// Chess.com-style move button
+function MoveBtn({
+  san, cls, active, onClick, refEl,
+}: {
+  san: string; cls?: string; active: boolean; onClick: () => void; refEl?: (el: HTMLButtonElement | null) => void;
+}) {
+  const meta = cls ? CLS[cls] : null;
+
+  return (
+    <button
+      ref={refEl}
+      onClick={onClick}
+      className={cn(
+        'flex items-center h-8 px-2 rounded text-sm font-mono transition-all shrink-0',
+        active
+          ? 'font-semibold text-foreground'
+          : 'text-muted-foreground hover:text-foreground hover:bg-muted/60',
+      )}
+      style={active && meta
+        ? { backgroundColor: meta.bg + '28', color: 'inherit' }
+        : active
+          ? { backgroundColor: 'hsl(var(--muted))' }
+          : undefined}
+    >
+      <span>{san}</span>
+      <InlineBadge cls={cls} />
+    </button>
+  );
+}
 
 function EvalBar({ cp, mate }: { cp: number | null; mate: number | null }) {
   const score = mate != null ? (mate > 0 ? 1200 : -1200) : (cp ?? 0);
@@ -41,14 +92,14 @@ function EvalBar({ cp, mate }: { cp: number | null; mate: number | null }) {
     <div className="relative w-full h-full rounded overflow-hidden border border-border" style={{ backgroundColor: '#1a1a1a' }}>
       <div
         className="absolute bottom-0 left-0 right-0"
-        style={{ height: `${whitePct}%`, backgroundColor: '#f0f0ee', transition: 'height 0.3s ease' }}
+        style={{ height: `${whitePct}%`, backgroundColor: '#f0f0ee', transition: 'height 0.28s ease' }}
       />
       <div
         className="absolute left-0 right-0 flex justify-center pointer-events-none z-10"
         style={{ bottom: `${whitePct}%`, transform: 'translateY(50%)' }}
       >
         <span
-          className="text-[8px] font-bold leading-none px-0.5 py-px rounded"
+          className="text-[7.5px] font-black leading-none px-0.5 py-px rounded"
           style={{
             color: whitePct > 50 ? '#111' : '#f0f0ee',
             backgroundColor: whitePct > 50 ? 'rgba(240,240,238,0.92)' : 'rgba(26,26,26,0.88)',
@@ -61,25 +112,12 @@ function EvalBar({ cp, mate }: { cp: number | null; mate: number | null }) {
   );
 }
 
-function ClassBadge({ cls }: { cls: string }) {
-  const meta = CLASSIFICATIONS[cls];
-  if (!meta || !BADGE_CLASSES.has(cls)) return null;
-  return (
-    <span
-      className="ml-0.5 inline-flex items-center justify-center text-[9px] font-black leading-none rounded px-0.5 min-w-[14px]"
-      style={{ backgroundColor: meta.bg, color: meta.text }}
-    >
-      {meta.badge}
-    </span>
-  );
-}
-
 function NavBtn({ onClick, title, children }: { onClick: () => void; title?: string; children: React.ReactNode }) {
   return (
     <button
       onClick={onClick}
       title={title}
-      className="w-10 h-10 flex items-center justify-center rounded-lg border border-border bg-card hover:bg-muted hover:border-primary/40 text-foreground transition-colors active:scale-95"
+      className="w-9 h-9 flex items-center justify-center rounded-md border border-border bg-card hover:bg-muted hover:border-primary/40 text-muted-foreground hover:text-foreground transition-colors"
     >
       {children}
     </button>
@@ -91,6 +129,8 @@ export function AnalysisPage() {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const [idx, setIdx] = useState<number>(-1);
+  const moveListRef = useRef<HTMLDivElement>(null);
+  const activeBtnRef = useRef<HTMLButtonElement | null>(null);
 
   const { data: game, isLoading: gameLoading } = useQuery({
     queryKey: ['game', gameId],
@@ -110,9 +150,7 @@ export function AnalysisPage() {
     onSuccess: () => {
       const poll = setInterval(async () => {
         const res = await refetchAnalysis();
-        if (res.data?.status === 'completed' || res.data?.status === 'failed') {
-          clearInterval(poll);
-        }
+        if (res.data?.status === 'completed' || res.data?.status === 'failed') clearInterval(poll);
       }, 2000);
     },
   });
@@ -124,8 +162,8 @@ export function AnalysisPage() {
   const lastMove    = idx >= 0 ? { from: moves[idx]?.uci?.slice(0, 2) ?? '', to: moves[idx]?.uci?.slice(2, 4) ?? '' } : null;
   const curAnalysis = analysis?.status === 'completed' && idx >= 0 ? analysis.moveAnalyses?.[idx] : null;
 
-  const evalCp: number | null = curAnalysis?.evalCentipawns ?? null;
-  const mateIn: number | null = curAnalysis?.mateIn ?? null;
+  const evalCp: number | null     = curAnalysis?.evalCentipawns ?? null;
+  const mateIn: number | null     = curAnalysis?.mateIn ?? null;
   const classification: string | undefined = curAnalysis?.classification;
   const bestMoveUci: string | null = curAnalysis?.bestMoveUci ?? null;
 
@@ -143,6 +181,13 @@ export function AnalysisPage() {
   const go      = useCallback((d: number) => setIdx((i) => Math.max(-1, Math.min(totalMoves - 1, i + d))), [totalMoves]);
   const goFirst = useCallback(() => setIdx(-1), []);
   const goLast  = useCallback(() => setIdx(totalMoves - 1), [totalMoves]);
+
+  // Auto-scroll active move into view
+  useEffect(() => {
+    if (activeBtnRef.current && moveListRef.current) {
+      activeBtnRef.current.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    }
+  }, [idx]);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -176,18 +221,24 @@ export function AnalysisPage() {
   const white = game.white?.username ?? 'White';
   const black = game.black?.username ?? 'Black';
 
-  type PairRow = { n: number; w?: { i: number; san: string; cls?: string }; b?: { i: number; san: string; cls?: string } };
-  const pairRows = (moves as any[]).reduce<PairRow[]>((acc, move: any, i: number) => {
+  // Build move rows: each row = { moveNumber, white?: MoveEntry, black?: MoveEntry }
+  type MoveEntry = { i: number; san: string; cls?: string };
+  type Row = { n: number; w?: MoveEntry; b?: MoveEntry };
+
+  const rows = (moves as any[]).reduce<Row[]>((acc, move: any, i: number) => {
     const cls: string | undefined = analysis?.moveAnalyses?.[i]?.classification;
     if (move.color === 'white') {
       acc.push({ n: move.moveNumber as number, w: { i, san: move.san, cls } });
     } else if (acc.length > 0) {
       acc[acc.length - 1].b = { i, san: move.san, cls };
+    } else {
+      // black moves first (unusual but handle it)
+      acc.push({ n: move.moveNumber as number, b: { i, san: move.san, cls } });
     }
     return acc;
   }, []);
 
-  const classMeta = classification ? CLASSIFICATIONS[classification] : null;
+  const classMeta = classification ? CLS[classification] : null;
 
   return (
     <div className="max-w-6xl mx-auto px-2 space-y-4">
@@ -209,12 +260,10 @@ export function AnalysisPage() {
         {/* Board column */}
         <div className="flex-1 min-w-0 space-y-3">
           {/*
-            CSS GRID: eval bar column (10px) + board column (1fr) share one row.
-            Row height = board height (aspect-square on 1fr width).
-            Eval bar fills 100% height of the row automatically — no JS needed.
+            CSS Grid: [10px eval bar] [board 1fr]
+            Same grid row → eval bar automatically = board height.
           */}
           <div style={{ display: 'grid', gridTemplateColumns: '10px 1fr', gap: '8px', alignItems: 'stretch' }}>
-            {/* Eval bar — h-full fills the shared grid row */}
             <div className="h-full">
               <EvalBar cp={evalCp} mate={mateIn} />
             </div>
@@ -232,26 +281,42 @@ export function AnalysisPage() {
             />
           </div>
 
-          {/* Navigation */}
-          <div className="flex items-center justify-center gap-2">
-            <NavBtn onClick={goFirst} title="First (Home)"><ChevronsLeft size={17} /></NavBtn>
-            <NavBtn onClick={() => go(-1)} title="Previous (←)"><ChevronLeft size={17} /></NavBtn>
-            <div className="min-w-[7rem] text-center px-3 py-1.5 rounded-lg border border-border bg-card text-sm">
-              {idx >= 0
-                ? <span className="font-semibold font-mono">{moves[idx]?.san}</span>
-                : <span className="text-muted-foreground">{t('analysis.start')}</span>}
+          {/* Navigation controls */}
+          <div className="flex items-center justify-center gap-1.5">
+            <NavBtn onClick={goFirst} title="First (Home)"><ChevronsLeft size={15} /></NavBtn>
+            <NavBtn onClick={() => go(-1)} title="Previous (←)"><ChevronLeft size={15} /></NavBtn>
+
+            <div
+              className="flex items-center gap-2 h-9 px-4 rounded-md border border-border bg-card min-w-[9rem] justify-center"
+            >
+              {idx >= 0 ? (
+                <>
+                  <span className="text-sm font-mono font-semibold">{moves[idx]?.san}</span>
+                  {classification && classMeta && (
+                    <span
+                      className="inline-flex items-center justify-center rounded-full text-[7px] font-black"
+                      style={{ width: 16, height: 16, backgroundColor: classMeta.bg, color: classMeta.text }}
+                    >
+                      {classMeta.badge}
+                    </span>
+                  )}
+                </>
+              ) : (
+                <span className="text-xs text-muted-foreground">{t('analysis.start')}</span>
+              )}
             </div>
-            <NavBtn onClick={() => go(1)} title="Next (→)"><ChevronRight size={17} /></NavBtn>
-            <NavBtn onClick={goLast} title="Last (End)"><ChevronsRight size={17} /></NavBtn>
+
+            <NavBtn onClick={() => go(1)} title="Next (→)"><ChevronRight size={15} /></NavBtn>
+            <NavBtn onClick={goLast} title="Last (End)"><ChevronsRight size={15} /></NavBtn>
           </div>
-          <p className="text-center text-[11px] text-muted-foreground select-none">{t('analysis.arrowKeys')}</p>
+          <p className="text-center text-[10px] text-muted-foreground select-none">{t('analysis.arrowKeys')}</p>
         </div>
 
         {/* Right panel */}
         <div className="w-full lg:w-72 shrink-0 space-y-3">
-          {/* Analysis info card */}
+          {/* Analysis info */}
           <div className="bg-card border border-border rounded-xl overflow-hidden">
-            <div className="flex items-center gap-2 px-4 py-3 border-b border-border bg-muted/30">
+            <div className="flex items-center gap-2 px-4 py-2.5 border-b border-border bg-muted/30">
               <BarChart2 size={14} className="text-primary shrink-0" />
               <span className="font-semibold text-sm">{t('analysis.title')}</span>
               {analysis?.status === 'completed' && (
@@ -262,7 +327,7 @@ export function AnalysisPage() {
             <div className="p-4 space-y-3">
               {!analysis && !requestMutation.isPending && !requestMutation.isSuccess && (
                 <div className="space-y-3">
-                  <p className="text-sm text-muted-foreground leading-relaxed">Stockfish move-by-move evaluation.</p>
+                  <p className="text-sm text-muted-foreground">Stockfish move-by-move evaluation.</p>
                   <button
                     onClick={() => requestMutation.mutate()}
                     className="w-full bg-primary text-primary-foreground py-2.5 rounded-lg text-sm font-bold hover:bg-primary/90 transition-colors"
@@ -294,7 +359,7 @@ export function AnalysisPage() {
                       className="flex items-center gap-2.5 rounded-lg px-3 py-2.5"
                       style={{ backgroundColor: classMeta.bg + '22' }}
                     >
-                      <span className="text-lg leading-none">{classMeta.icon}</span>
+                      <span className="text-base leading-none">{classMeta.icon}</span>
                       <span className="font-bold capitalize text-sm" style={{ color: classMeta.bg }}>{classification}</span>
                       {classMeta.badge && (
                         <span
@@ -306,13 +371,13 @@ export function AnalysisPage() {
                       )}
                     </div>
                   ) : (
-                    <p className="text-xs text-muted-foreground">{idx < 0 ? t('analysis.selectMove') : 'No data for this move'}</p>
+                    <p className="text-xs text-muted-foreground">{idx < 0 ? t('analysis.selectMove') : t('analysis.noMoves')}</p>
                   )}
 
                   {evalDisplay && (
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-muted-foreground">{t('analysis.evaluation')}</span>
-                      <span className={cn('font-bold tabular-nums font-mono', (evalCp ?? 0) > 50 ? 'text-green-500' : (evalCp ?? 0) < -50 ? 'text-red-400' : 'text-foreground')}>
+                      <span className={cn('font-bold tabular-nums font-mono text-sm', (evalCp ?? 0) > 50 ? 'text-green-500' : (evalCp ?? 0) < -50 ? 'text-red-400' : 'text-foreground')}>
                         {evalDisplay}
                       </span>
                     </div>
@@ -329,47 +394,51 @@ export function AnalysisPage() {
             </div>
           </div>
 
-          {/* Move list */}
+          {/* Move list — chess.com style */}
           <div className="bg-card border border-border rounded-xl overflow-hidden">
-            <div className="px-4 py-3 border-b border-border bg-muted/30 flex items-center gap-2">
+            <div className="px-4 py-2.5 border-b border-border bg-muted/30 flex items-center gap-2">
               <span className="font-semibold text-sm">{t('analysis.moves')}</span>
               <span className="text-xs text-muted-foreground">({totalMoves})</span>
             </div>
-            <div className="max-h-72 overflow-y-auto overscroll-contain">
-              {pairRows.length === 0 ? (
+
+            <div ref={moveListRef} className="max-h-80 overflow-y-auto overscroll-contain py-1">
+              {rows.length === 0 ? (
                 <p className="text-xs text-muted-foreground p-4 text-center">{t('analysis.noMoves')}</p>
               ) : (
-                <div className="py-1">
-                  {pairRows.map(({ n, w, b }: PairRow) => (
-                    <div key={n} className="flex items-center">
-                      <span className="text-muted-foreground pl-3 pr-1 py-0.5 shrink-0 text-xs w-9 text-right font-mono">{n}.</span>
-                      {w ? (
-                        <button
-                          onClick={() => setIdx(w.i)}
-                          className={cn(
-                            'flex items-center w-[4.5rem] text-left px-1.5 py-0.5 rounded text-xs font-mono',
-                            idx === w.i ? 'bg-primary/20 text-primary font-semibold' : 'hover:bg-muted',
-                          )}
-                        >
-                          <span className="truncate">{w.san}</span>
-                          {w.cls && <ClassBadge cls={w.cls} />}
-                        </button>
-                      ) : <span className="w-[4.5rem]" />}
-                      {b ? (
-                        <button
-                          onClick={() => setIdx(b.i)}
-                          className={cn(
-                            'flex items-center w-[4.5rem] text-left px-1.5 py-0.5 rounded text-xs font-mono',
-                            idx === b.i ? 'bg-primary/20 text-primary font-semibold' : 'hover:bg-muted',
-                          )}
-                        >
-                          <span className="truncate">{b.san}</span>
-                          {b.cls && <ClassBadge cls={b.cls} />}
-                        </button>
-                      ) : <span className="w-[4.5rem]" />}
-                    </div>
-                  ))}
-                </div>
+                rows.map(({ n, w, b }: Row) => (
+                  <div key={n} className="flex items-center">
+                    {/* Move number */}
+                    <span className="text-muted-foreground text-xs font-mono w-9 text-right pr-1.5 shrink-0 select-none">
+                      {n}.
+                    </span>
+
+                    {/* White move */}
+                    {w ? (
+                      <MoveBtn
+                        san={w.san}
+                        cls={w.cls}
+                        active={idx === w.i}
+                        onClick={() => setIdx(w.i)}
+                        refEl={idx === w.i ? (el) => { activeBtnRef.current = el; } : undefined}
+                      />
+                    ) : (
+                      <span className="w-[5.5rem] h-8" />
+                    )}
+
+                    {/* Black move */}
+                    {b ? (
+                      <MoveBtn
+                        san={b.san}
+                        cls={b.cls}
+                        active={idx === b.i}
+                        onClick={() => setIdx(b.i)}
+                        refEl={idx === b.i ? (el) => { activeBtnRef.current = el; } : undefined}
+                      />
+                    ) : (
+                      <span className="w-[5.5rem] h-8" />
+                    )}
+                  </div>
+                ))
               )}
             </div>
           </div>

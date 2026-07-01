@@ -1,49 +1,10 @@
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { Chessboard } from 'react-chessboard';
 import { useAuthStore } from '@/stores/auth.store';
 import { Zap, Bot, BarChart2, Trophy, Shield, Globe } from 'lucide-react';
 
-const ROWS = 8;
-const COLS = 8;
-const DEMO_PIECES: Record<string, string> = {
-  '00': '♜', '01': '♞', '02': '♝', '03': '♛', '04': '♚', '05': '♝', '06': '♞', '07': '♜',
-  '10': '♟', '11': '♟', '12': '♟', '13': '♟', '14': '♟', '15': '♟', '16': '♟', '17': '♟',
-  '60': '♙', '61': '♙', '62': '♙', '63': '♙', '64': '♙', '65': '♙', '66': '♙', '67': '♙',
-  '70': '♖', '71': '♘', '72': '♗', '73': '♕', '74': '♔', '75': '♗', '76': '♘', '77': '♖',
-};
-
-function MiniBoard() {
-  const cells: React.ReactNode[] = [];
-  for (let r = 0; r < ROWS; r++) {
-    for (let c = 0; c < COLS; c++) {
-      const dark = (r + c) % 2 === 1;
-      cells.push(
-        <div
-          key={`${r}${c}`}
-          style={{
-            backgroundColor: dark ? '#769656' : '#eeeed2',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: 22,
-            lineHeight: 1,
-            userSelect: 'none' as const,
-          }}
-        >
-          {DEMO_PIECES[`${r}${c}`] ?? ''}
-        </div>,
-      );
-    }
-  }
-  return (
-    <div
-      className="rounded-xl overflow-hidden shadow-2xl"
-      style={{ width: 256, height: 256, display: 'grid', gridTemplateColumns: 'repeat(8, 1fr)' }}
-    >
-      {cells}
-    </div>
-  );
-}
+const STARTING_FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
 
 const FEATURES = [
   { Icon: Zap,       key: 'realtime'  },
@@ -62,9 +23,9 @@ export function HomePage() {
     <div>
       {/* Hero */}
       <section className="min-h-[calc(100vh-3.5rem)] flex items-center justify-center px-4 py-16">
-        <div className="flex flex-col lg:flex-row items-center gap-14 max-w-5xl w-full">
-          {/* Text */}
-          <div className="flex-1 text-left max-w-xl">
+        <div className="flex flex-col lg:flex-row items-center gap-16 max-w-5xl w-full">
+          {/* Text side */}
+          <div className="flex-1 text-left max-w-lg">
             <span className="inline-block text-xs font-bold uppercase tracking-[0.18em] text-primary mb-5">
               Open Source · Self-Hosted
             </span>
@@ -101,13 +62,27 @@ export function HomePage() {
             </div>
           </div>
 
-          {/* Board */}
-          <div className="shrink-0 relative">
+          {/* Chess board — real piece images via react-chessboard */}
+          <div className="shrink-0 relative" style={{ pointerEvents: 'none', userSelect: 'none', width: 300 }}>
             <div
-              className="absolute inset-[-24px] rounded-3xl opacity-20 blur-3xl"
-              style={{ backgroundColor: 'hsl(var(--primary))' }}
+              className="absolute rounded-3xl opacity-20 blur-3xl"
+              style={{
+                inset: -24,
+                backgroundColor: 'hsl(var(--primary))',
+              }}
             />
-            <MiniBoard />
+            <Chessboard
+              position={STARTING_FEN}
+              arePiecesDraggable={false}
+              customDarkSquareStyle={{ backgroundColor: '#769656' }}
+              customLightSquareStyle={{ backgroundColor: '#eeeed2' }}
+              customBoardStyle={{
+                borderRadius: '10px',
+                boxShadow: '0 24px 64px rgba(0,0,0,0.45)',
+              }}
+              showBoardNotation={false}
+              animationDuration={0}
+            />
           </div>
         </div>
       </section>
@@ -117,7 +92,7 @@ export function HomePage() {
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-black tracking-tight mb-3">{t('home.featuresTitle')}</h2>
-            <p className="text-muted-foreground max-w-sm mx-auto">{t('home.featuresSubtitle')}</p>
+            <p className="text-muted-foreground max-w-sm mx-auto leading-relaxed">{t('home.featuresSubtitle')}</p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {FEATURES.map(({ Icon, key }) => (
