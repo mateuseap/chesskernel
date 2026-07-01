@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { ChessBoard } from '@/components/chess/ChessBoard';
 import { ChessClock } from '@/components/chess/ChessClock';
+import { MaterialCount, parseMaterial } from '@/components/chess/MaterialCount';
 import { useGameStore } from '@/stores/game.store';
 import { useAuthStore } from '@/stores/auth.store';
 import { getSocket } from '@/services/socket';
@@ -186,6 +187,14 @@ export function GamePage() {
   const opponent = orientation === 'white' ? gameState.black : gameState.white;
   const self = orientation === 'white' ? gameState.white : gameState.black;
 
+  const material = parseMaterial(gameState.fen);
+  // From each player's perspective: positive advantage = they're winning material
+  const selfAdvantage     = orientation === 'white' ? material.advantage : -material.advantage;
+  const opponentAdvantage = -selfAdvantage;
+  // Each row shows pieces THEY captured from the other side
+  const selfCaptures     = orientation === 'white' ? material.blackLost : material.whiteLost;
+  const opponentCaptures = orientation === 'white' ? material.whiteLost : material.blackLost;
+
   const drawIsFromOpponent = drawOffered !== null && drawOffered !== myColor;
 
   return (
@@ -193,11 +202,12 @@ export function GamePage() {
       {/* Board column */}
       <div className="flex-1 min-w-0 max-w-[680px] mx-auto lg:mx-0">
         {/* Opponent info */}
-        <div className="flex items-center justify-between mb-2 px-1">
+        <div className="flex items-center justify-between mb-1.5 px-1">
           <div className="flex items-center gap-2">
-            <div className={cn('w-5 h-5 rounded-full border border-border', orientation === 'black' ? 'bg-white' : 'bg-gray-900')} />
+            <div className={cn('w-5 h-5 rounded-full border border-border shrink-0', orientation === 'black' ? 'bg-white' : 'bg-gray-900')} />
             <span className="font-semibold text-sm">{opponent?.username ?? 'Stockfish'}</span>
           </div>
+          <MaterialCount captures={opponentCaptures} advantage={opponentAdvantage} />
         </div>
 
         <ChessBoard
@@ -214,16 +224,12 @@ export function GamePage() {
         />
 
         {/* Player info */}
-        <div className="flex items-center justify-between mt-2 px-1">
+        <div className="flex items-center justify-between mt-1.5 px-1">
           <div className="flex items-center gap-2">
-            <div className={cn('w-5 h-5 rounded-full border border-border', orientation === 'white' ? 'bg-white' : 'bg-gray-900 dark:bg-gray-100')} />
+            <div className={cn('w-5 h-5 rounded-full border border-border shrink-0', orientation === 'white' ? 'bg-white' : 'bg-gray-900 dark:bg-gray-100')} />
             <span className="font-semibold text-sm">{self?.username ?? t('game.you')}</span>
           </div>
-          {myColor && (
-            <span className="text-xs text-muted-foreground capitalize">
-              {orientation === 'white' ? '♔' : '♚'} {orientation}
-            </span>
-          )}
+          <MaterialCount captures={selfCaptures} advantage={selfAdvantage} />
         </div>
       </div>
 

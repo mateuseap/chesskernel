@@ -70,13 +70,33 @@
   }
 }
 
-/* Illegal move flash */
-@keyframes illegal-flash {
-  0%,100% { box-shadow: none; }
-  40%     { box-shadow: inset 0 0 0 4px rgba(202, 52, 49, 0.80); }
+/* Illegal move — chess.com-style shake + red glow */
+@keyframes illegal-shake {
+  0%   { transform: translateX(0); }
+  14%  { transform: translateX(-6px); }
+  28%  { transform: translateX(6px); }
+  42%  { transform: translateX(-4px); }
+  57%  { transform: translateX(4px); }
+  71%  { transform: translateX(-2px); }
+  85%  { transform: translateX(2px); }
+  100% { transform: translateX(0); }
 }
 .animate-illegal-flash {
-  animation: illegal-flash 0.38s ease-out forwards;
+  animation: illegal-shake 0.42s ease-out;
+}
+.animate-illegal-flash::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 3px rgba(202,52,49,0.75);
+  pointer-events: none;
+  animation: illegal-glow 0.42s ease-out forwards;
+  z-index: 50;
+}
+@keyframes illegal-glow {
+  0%   { opacity: 1; }
+  100% { opacity: 0; }
 }
 
 /* Scrollbar */

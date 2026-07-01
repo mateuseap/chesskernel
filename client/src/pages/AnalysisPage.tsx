@@ -78,36 +78,87 @@ function MoveBtn({
 }
 
 function EvalBar({ cp, mate }: { cp: number | null; mate: number | null }) {
-  const score = mate != null ? (mate > 0 ? 1200 : -1200) : (cp ?? 0);
-  const clamped = Math.max(-600, Math.min(600, score));
-  const whitePct = 50 + (clamped / 600) * 50;
+  // Clamp to ±9 pawns — beyond that the game is effectively decided
+  const raw = mate != null ? (mate > 0 ? 900 : -900) : (cp ?? 0);
+  const clamped = Math.max(-900, Math.min(900, raw));
+
+  // whitePct: fraction of the bar height that belongs to white (0–100, from bottom)
+  const whitePct = 50 + (clamped / 900) * 50;
+  const whiteWinning = clamped >= 0;
 
   const label = mate != null
-    ? `${mate > 0 ? '+' : '-'}M${Math.abs(mate)}`
+    ? `M${Math.abs(mate)}`
     : cp != null
-      ? `${cp >= 0 ? '+' : ''}${(cp / 100).toFixed(1)}`
+      ? `${Math.abs(cp / 100).toFixed(1)}`
       : '0.0';
 
+  // Score sits inside the winning side's portion, anchored near the dividing line
+  const labelStyle: React.CSSProperties = whiteWinning
+    ? { bottom: `${whitePct}%`, marginBottom: 3 }
+    : { top: `${100 - whitePct}%`, marginTop: 3 };
+
   return (
-    <div className="relative w-full h-full rounded overflow-hidden border border-border" style={{ backgroundColor: '#1a1a1a' }}>
+    <div
+      className="relative w-full h-full rounded-sm overflow-hidden"
+      style={{ backgroundColor: '#262421' }}
+    >
+      {/* White (cream) portion — grows from bottom */}
       <div
         className="absolute bottom-0 left-0 right-0"
-        style={{ height: `${whitePct}%`, backgroundColor: '#f0f0ee', transition: 'height 0.28s ease' }}
+        style={{
+          height: `${whitePct}%`,
+          backgroundColor: '#f0ede0',
+          transition: 'height 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+        }}
       />
+
+      {/* Thin divider line at the boundary */}
+      <div
+        className="absolute left-0 right-0 pointer-events-none"
+        style={{
+          bottom: `${whitePct}%`,
+          height: 1,
+          backgroundColor: 'rgba(128,128,128,0.35)',
+          transition: 'bottom 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+        }}
+      />
+
+      {/* Score label — hugs the dividing line, inside the winning colour */}
       <div
         className="absolute left-0 right-0 flex justify-center pointer-events-none z-10"
-        style={{ bottom: `${whitePct}%`, transform: 'translateY(50%)' }}
+        style={{ transition: 'bottom 0.25s cubic-bezier(0.4,0,0.2,1), top 0.25s cubic-bezier(0.4,0,0.2,1)', ...labelStyle }}
       >
         <span
-          className="text-[7.5px] font-black leading-none px-0.5 py-px rounded"
           style={{
-            color: whitePct > 50 ? '#111' : '#f0f0ee',
-            backgroundColor: whitePct > 50 ? 'rgba(240,240,238,0.92)' : 'rgba(26,26,26,0.88)',
+            display: 'block',
+            color: whiteWinning ? '#262421' : '#f0ede0',
+            fontSize: 8,
+            fontWeight: 900,
+            lineHeight: 1,
+            letterSpacing: '-0.02em',
+            padding: '1.5px 2.5px',
+            borderRadius: 2,
           }}
         >
           {label}
         </span>
       </div>
+
+      {/* Black label at top-end (shows score for the losing side too) */}
+      {!whiteWinning && (
+        <div className="absolute top-1 left-0 right-0 flex justify-center pointer-events-none z-10">
+          <span style={{ color: '#f0ede0', fontSize: 8, fontWeight: 900, lineHeight: 1 }}>
+            {label}
+          </span>
+        </div>
+      )}
+      {whiteWinning && (
+        <div className="absolute bottom-1 left-0 right-0 flex justify-center pointer-events-none z-10">
+          <span style={{ color: '#262421', fontSize: 8, fontWeight: 900, lineHeight: 1 }}>
+            {label}
+          </span>
+        </div>
+      )}
     </div>
   );
 }
