@@ -1,0 +1,100 @@
+{
+  "nav": {
+    "play": "Jogar",
+    "leaderboard": "Classificação",
+    "login": "Entrar",
+    "signUp": "Cadastrar",
+    "logout": "Sair"
+  },
+  "home": {
+    "title": "ChessKernel",
+    "subtitle": "Plataforma de xadrez gratuita e open-source. Jogue online, desafie bots e analise suas partidas.",
+    "getStarted": "Começar",
+    "playNow": "Jogar Agora",
+    "features": {
+      "realtime": { "title": "Tempo Real", "desc": "Jogue partidas ao vivo contra oponentes do mundo inteiro" },
+      "bots": { "title": "vs Bot", "desc": "Desafie o Stockfish em qualquer nível de dificuldade" },
+      "analysis": { "title": "Análise", "desc": "Análise gratuita pós-partida com Stockfish" }
+    }
+  },
+  "play": {
+    "title": "Jogar Xadrez",
+    "online": "Jogar Online",
+    "vsBot": "Jogar vs Bot",
+    "timeControl": "Controle de Tempo",
+    "difficulty": "Dificuldade do Bot",
+    "playAs": "Jogar como",
+    "white": "Brancas",
+    "black": "Pretas",
+    "random": "Aleatório",
+    "findGame": "Encontrar Partida",
+    "searching": "Procurando oponente",
+    "cancel": "Cancelar",
+    "playVsBot": "Jogar vs Bot",
+    "bullet": "Bullet",
+    "blitz": "Blitz",
+    "rapid": "Rápido",
+    "classical": "Clássico",
+    "difficulties": {
+      "beginner": "Iniciante",
+      "easy": "Fácil",
+      "medium": "Médio",
+      "hard": "Difícil",
+      "expert": "Expert",
+      "maximum": "Máximo"
+    }
+  },
+  "game": {
+    "offerDraw": "Oferecer Empate",
+    "resign": "Abandonar",
+    "analyzeGame": "Analisar Partida",
+    "you": "Você",
+    "moves": "Lances",
+    "draw": "Empate",
+    "youWon": "Você Ganhou!",
+    "youLost": "Você Perdeu",
+    "loading": "Carregando partida…",
+    "drawOffered": "Empate oferecido",
+    "accept": "Aceitar",
+    "decline": "Recusar",
+    "terminations": {
+      "checkmate": "Xeque-mate",
+      "timeout": "Tempo esgotado",
+      "resignation": "Abandono",
+      "draw_agreement": "Empate por acordo",
+      "stalemate": "Afogamento",
+      "insufficient_material": "Material insuficiente",
+      "threefold_repetition": "Repetição tripla",
+      "fifty_move_rule": "Regra dos 50 lances",
+      "abandoned": "Abandonada"
+    }
+  },
+  "auth": {
+    "login": "Entrar",
+    "register": "Criar Conta",
+    "email": "E-mail",
+    "password": "Senha",
+    "username": "Usuário",
+    "welcomeBack": "Bem-vindo de volta",
+    "loginSubtitle": "Entre na sua conta ChessKernel",
+    "registerSubtitle": "Crie sua conta gratuita no ChessKernel",
+    "noAccount": "Não tem uma conta?",
+    "hasAccount": "Já tem uma conta?",
+    "signUp": "Cadastre-se",
+    "loginLink": "Entrar",
+    "loggingIn": "Entrando…",
+    "creating": "Criando conta…"
+  },
+  "leaderboard": {
+    "title": "Classificação",
+    "rank": "Posição",
+    "player": "Jogador",
+    "rating": "Rating",
+    "games": "Partidas",
+    "winRate": "Taxa de Vitória"
+  },
+  "theme": {
+    "light": "Claro",
+    "dark": "Escuro"
+  }
+}

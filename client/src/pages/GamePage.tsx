@@ -1,5 +1,6 @@
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Chess } from 'chess.js';
 import { ChessBoard } from '@/components/chess/ChessBoard';
 import { ChessClock } from '@/components/chess/ChessClock';
@@ -7,186 +8,164 @@ import { useGameStore } from '@/stores/game.store';
 import { useAuthStore } from '@/stores/auth.store';
 import { getSocket } from '@/services/socket';
 import { api } from '@/services/api';
-import type { Square } from '@chesskernel/shared';
-import type { MoveBroadcastPayload, GameOverPayload } from '@chesskernel/shared';
+import { cn } from '@/lib/utils';
+import type { Square, GameOverPayload, MoveBroadcastPayload } from '@chesskernel/shared';
 
 export function GamePage() {
   const { gameId } = useParams<{ gameId: string }>();
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const user = useAuthStore((s) => s.user);
+  const [drawOffered, setDrawOffered] = useState<'white' | 'black' | null>(null);
+  const [gameOver, setGameOver] = useState<GameOverPayload | null>(null);
 
   const {
-    gameState,
-    chess,
-    selectedSquare,
-    myColor,
-    isMyTurn,
-    setGameState,
-    applyMoveOptimistic,
-    revertOptimistic,
-    applyServerMove,
-    updateClock,
-    selectSquare,
-    reset,
+    gameState, chess, selectedSquare, myColor, isMyTurn,
+    setGameState, applyMoveOptimistic, revertOptimistic,
+    applyServerMove, updateClock, selectSquare, reset,
   } = useGameStore();
 
   useEffect(() => {
     if (!gameId || !user) return;
 
     api.get<any>(`/games/${gameId}`).then((game) => {
-      setGameState(
-        {
-          id: game.id,
-          white: game.white,
-          black: game.black,
-          status: game.status,
-          result: game.result,
-          termination: game.termination,
-          timeControl: game.timeControl,
-          timeControlConfig: { initialTimeMs: game.initialTimeMs, incrementMs: game.incrementMs, label: '', type: game.timeControl },
-          fen: game.moves.length > 0 ? game.moves[game.moves.length - 1].fenAfter : 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
-          pgn: game.pgn,
-          moves: game.moves,
-          clock: { white: game.initialTimeMs, black: game.initialTimeMs, activeColor: 'white', lastUpdatedAt: Date.now() },
-          isBotGame: game.isBotGame,
-          botDifficulty: game.botDifficulty,
-          isCheck: false,
-          isCheckmate: false,
-          isStalemate: false,
-          isDraw: false,
-          drawOffer: null,
-          startedAt: game.startedAt,
-          endedAt: game.endedAt,
-          createdAt: game.createdAt,
-        },
-        user.id,
-      );
+      const lastFen = game.moves.length > 0
+        ? game.moves[game.moves.length - 1].fenAfter
+        : 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
+      setGameState({
+        id: game.id,
+        white: game.white,
+        black: game.black,
+        status: game.status,
+        result: game.result,
+        termination: game.termination,
+        timeControl: game.timeControl,
+        timeControlConfig: { initialTimeMs: game.initialTimeMs, incrementMs: game.incrementMs, label: '', type: game.timeControl },
+        fen: lastFen,
+        pgn: game.pgn,
+        moves: game.moves,
+        clock: { white: game.initialTimeMs, black: game.initialTimeMs, activeColor: 'white', lastUpdatedAt: Date.now() },
+        isBotGame: game.isBotGame,
+        botDifficulty: game.botDifficulty,
+        isCheck: false, isCheckmate: false, isStalemate: false, isDraw: false,
+        drawOffer: null, startedAt: game.startedAt, endedAt: game.endedAt, createdAt: game.createdAt,
+      }, user.id);
+      if (game.status === 'ended') {
+        setGameOver({ result: game.result, termination: game.termination, winner: game.result === 'draw' ? null : game.result, whiteRatingDelta: null, blackRatingDelta: null, pgn: game.pgn ?? '' });
+      }
     });
 
     const socket = getSocket();
     socket.emit('game:spectate', { gameId });
 
-    const handleMoveBroadcast = (payload: MoveBroadcastPayload) => {
-      applyServerMove(payload.move, payload.fen, payload.clock);
-    };
+    const onMove = (p: MoveBroadcastPayload) => { applyServerMove(p.move, p.fen, p.clock); };
+    const onClock = (c: any) => { updateClock(c); };
+    const onOver = (p: GameOverPayload) => { setGameOver(p); };
+    const onDrawOffered = ({ byColor }: { byColor: 'white' | 'black' }) => { setDrawOffered(byColor); };
+    const onDrawDeclined = () => { setDrawOffered(null); };
 
-    const handleClock = (clock: any) => {
-      updateClock(clock);
-    };
-
-    const handleGameOver = (payload: GameOverPayload) => {
-      console.log('Game over:', payload);
-    };
-
-    socket.on('game:move:broadcast', handleMoveBroadcast);
-    socket.on('game:clock', handleClock);
-    socket.on('game:over', handleGameOver);
+    socket.on('game:move:broadcast', onMove);
+    socket.on('game:clock', onClock);
+    socket.on('game:over', onOver);
+    socket.on('game:draw:offered', onDrawOffered);
+    socket.on('game:draw:declined', onDrawDeclined);
 
     return () => {
-      socket.off('game:move:broadcast', handleMoveBroadcast);
-      socket.off('game:clock', handleClock);
-      socket.off('game:over', handleGameOver);
+      socket.off('game:move:broadcast', onMove);
+      socket.off('game:clock', onClock);
+      socket.off('game:over', onOver);
+      socket.off('game:draw:offered', onDrawOffered);
+      socket.off('game:draw:declined', onDrawDeclined);
       socket.emit('game:leave', { gameId });
       reset();
     };
   }, [gameId, user]);
 
-  const getLegalMoves = useCallback(
-    (square: Square): Square[] => {
-      if (!isMyTurn) return [];
-      const moves = chess.moves({ square, verbose: true });
-      return moves.map((m) => m.to as Square);
-    },
-    [chess, isMyTurn],
-  );
+  const getLegalMoves = useCallback((sq: Square): Square[] => {
+    if (!isMyTurn) return [];
+    return chess.moves({ square: sq, verbose: true }).map((m) => m.to as Square);
+  }, [chess, isMyTurn]);
 
-  const handleSquareClick = useCallback(
-    (square: Square) => {
-      if (!isMyTurn || !gameId) return;
-
-      if (!selectedSquare) {
-        const piece = chess.get(square);
-        if (piece && piece.color === myColor?.[0]) {
-          selectSquare(square);
-        }
-        return;
-      }
-
-      if (selectedSquare === square) {
-        selectSquare(null);
-        return;
-      }
-
-      const legalMoves = chess.moves({ square: selectedSquare as Square, verbose: true });
-      const targetMove = legalMoves.find((m) => m.to === square);
-
-      if (!targetMove) {
-        const piece = chess.get(square);
-        if (piece && piece.color === myColor?.[0]) {
-          selectSquare(square);
-        } else {
-          selectSquare(null);
-        }
-        return;
-      }
-
-      const needsPromotion =
-        targetMove.piece === 'p' &&
-        ((myColor === 'white' && square[1] === '8') ||
-          (myColor === 'black' && square[1] === '1'));
-
-      if (needsPromotion) {
-        // TODO: show promotion dialog
-        sendMove(selectedSquare as Square, square, 'q');
-      } else {
-        sendMove(selectedSquare as Square, square);
-      }
-
-      selectSquare(null);
-    },
-    [selectedSquare, chess, isMyTurn, myColor, gameId],
-  );
-
-  const sendMove = (from: Square, to: Square, promotion?: string) => {
+  const sendMove = useCallback((from: Square, to: Square, promotion?: string) => {
     if (!gameId) return;
-
-    const previousFen = chess.fen();
-    const success = applyMoveOptimistic(from, to, promotion);
-
-    if (!success) return;
-
+    const prevFen = chess.fen();
+    const ok = applyMoveOptimistic(from, to, promotion);
+    if (!ok) return;
     const socket = getSocket();
     socket.emit('game:move', { gameId, from, to, promotion });
+    socket.once('game:move:rejected', () => revertOptimistic(prevFen));
+  }, [gameId, chess, applyMoveOptimistic, revertOptimistic]);
 
-    socket.once('game:move:rejected', () => {
-      revertOptimistic(previousFen);
-    });
-  };
+  const handleSquareClick = useCallback((sq: Square) => {
+    if (!isMyTurn || !gameId) return;
+    if (!selectedSquare) {
+      const piece = chess.get(sq);
+      if (piece && piece.color === myColor?.[0]) selectSquare(sq);
+      return;
+    }
+    if (selectedSquare === sq) { selectSquare(null); return; }
+    const moves = chess.moves({ square: selectedSquare as Square, verbose: true });
+    const target = moves.find((m) => m.to === sq);
+    if (!target) {
+      const piece = chess.get(sq);
+      selectSquare(piece && piece.color === myColor?.[0] ? sq : null);
+      return;
+    }
+    const needsPromo = target.piece === 'p' && ((myColor === 'white' && sq[1] === '8') || (myColor === 'black' && sq[1] === '1'));
+    sendMove(selectedSquare as Square, sq, needsPromo ? 'q' : undefined);
+    selectSquare(null);
+  }, [selectedSquare, chess, isMyTurn, myColor, gameId, sendMove]);
 
-  const handleResign = () => {
-    if (!gameId) return;
-    getSocket().emit('game:resign', { gameId });
-  };
+  const handleDrop = useCallback((from: Square, to: Square) => {
+    if (!isMyTurn || !gameId) return;
+    const moves = chess.moves({ square: from, verbose: true });
+    const target = moves.find((m) => m.to === to);
+    if (!target) return;
+    const needsPromo = target.piece === 'p' && ((myColor === 'white' && to[1] === '8') || (myColor === 'black' && to[1] === '1'));
+    sendMove(from, to, needsPromo ? 'q' : undefined);
+    selectSquare(null);
+  }, [chess, isMyTurn, myColor, gameId, sendMove]);
 
-  const handleDrawOffer = () => {
-    if (!gameId) return;
-    getSocket().emit('game:draw:offer', { gameId });
-  };
+  const handleResign = () => { if (gameId) getSocket().emit('game:resign', { gameId }); };
+  const handleDrawOffer = () => { if (gameId) getSocket().emit('game:draw:offer', { gameId }); };
+  const handleDrawAccept = () => { if (gameId) { getSocket().emit('game:draw:accept', { gameId }); setDrawOffered(null); } };
+  const handleDrawDecline = () => { if (gameId) { getSocket().emit('game:draw:decline', { gameId }); setDrawOffered(null); } };
 
   if (!gameState) {
-    return <div className="flex items-center justify-center h-64 text-muted-foreground">Loading game…</div>;
+    return (
+      <div className="flex items-center justify-center h-[60vh]">
+        <div className="flex flex-col items-center gap-3 text-muted-foreground">
+          <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+          <span className="text-sm">{t('game.loading')}</span>
+        </div>
+      </div>
+    );
   }
 
   const orientation = myColor ?? 'white';
   const lastMove = gameState.moves.length > 0
-    ? { from: gameState.moves[gameState.moves.length - 1].uci.substring(0, 2) as Square, to: gameState.moves[gameState.moves.length - 1].uci.substring(2, 4) as Square }
+    ? { from: gameState.moves.at(-1)!.uci.substring(0, 2) as Square, to: gameState.moves.at(-1)!.uci.substring(2, 4) as Square }
     : null;
-
   const legalSquares = selectedSquare ? getLegalMoves(selectedSquare as Square) : [];
+  const isActive = gameState.status === 'active' && !gameOver;
+
+  const opponent = orientation === 'white' ? gameState.black : gameState.white;
+  const self = orientation === 'white' ? gameState.white : gameState.black;
+
+  const drawIsFromOpponent = drawOffered !== null && drawOffered !== myColor;
 
   return (
-    <div className="flex gap-6 max-w-5xl mx-auto">
-      <div className="flex-1 max-w-[600px]">
+    <div className="flex flex-col lg:flex-row gap-4 max-w-6xl mx-auto px-2">
+      {/* Board column */}
+      <div className="flex-1 min-w-0 max-w-[680px] mx-auto lg:mx-0">
+        {/* Opponent info */}
+        <div className="flex items-center justify-between mb-2 px-1">
+          <div className="flex items-center gap-2">
+            <div className={cn('w-5 h-5 rounded-full border border-border', orientation === 'black' ? 'bg-white' : 'bg-gray-900')} />
+            <span className="font-semibold text-sm">{opponent?.username ?? 'Stockfish'}</span>
+          </div>
+        </div>
+
         <ChessBoard
           fen={gameState.fen}
           orientation={orientation}
@@ -195,89 +174,120 @@ export function GamePage() {
           lastMove={lastMove}
           isCheck={gameState.isCheck}
           onSquareClick={handleSquareClick}
-          disabled={!isMyTurn || gameState.status !== 'active'}
+          onDrop={handleDrop}
+          disabled={!isActive || !isMyTurn}
         />
+
+        {/* Player info */}
+        <div className="flex items-center justify-between mt-2 px-1">
+          <div className="flex items-center gap-2">
+            <div className={cn('w-5 h-5 rounded-full border border-border', orientation === 'white' ? 'bg-white' : 'bg-gray-900 dark:bg-gray-100')} />
+            <span className="font-semibold text-sm">{self?.username ?? t('game.you')}</span>
+          </div>
+          {myColor && (
+            <span className="text-xs text-muted-foreground capitalize">
+              {orientation === 'white' ? '♔' : '♚'} {orientation}
+            </span>
+          )}
+        </div>
       </div>
 
-      <div className="w-64 flex flex-col gap-4">
-        <div className="bg-card border rounded-lg p-4 space-y-2">
-          <div className="font-medium text-sm">
-            {orientation === 'white' ? '♚ Black' : '♔ White'}
-          </div>
-          <div className="text-xs text-muted-foreground">
-            {orientation === 'white' ? gameState.black?.username : gameState.white?.username}
-          </div>
-        </div>
-
+      {/* Side panel */}
+      <div className="w-full lg:w-64 flex flex-col gap-3">
+        {/* Clock */}
         <ChessClock
           whiteMs={gameState.clock.white}
           blackMs={gameState.clock.black}
           activeColor={gameState.clock.activeColor}
-          isGameActive={gameState.status === 'active'}
+          isGameActive={isActive}
           orientation={orientation}
+          playerName={{ top: opponent?.username ?? 'Stockfish', bottom: self?.username ?? 'You' }}
         />
 
-        <div className="bg-card border rounded-lg p-4 space-y-2">
-          <div className="font-medium text-sm">
-            {orientation === 'white' ? '♔ White (You)' : '♚ Black (You)'}
+        {/* Draw offer banner */}
+        {drawIsFromOpponent && (
+          <div className="bg-yellow-50 dark:bg-yellow-900/30 border border-yellow-300 dark:border-yellow-700 rounded-lg p-3 space-y-2">
+            <p className="text-sm font-medium text-yellow-800 dark:text-yellow-200">{t('game.drawOffered')}</p>
+            <div className="flex gap-2">
+              <button onClick={handleDrawAccept} className="flex-1 bg-green-600 text-white text-sm px-3 py-1.5 rounded-md hover:bg-green-700 transition-colors">
+                {t('game.accept')}
+              </button>
+              <button onClick={handleDrawDecline} className="flex-1 border border-border text-sm px-3 py-1.5 rounded-md hover:bg-muted transition-colors">
+                {t('game.decline')}
+              </button>
+            </div>
           </div>
-          <div className="text-xs text-muted-foreground">
-            {orientation === 'white' ? gameState.white?.username : gameState.black?.username}
-          </div>
-        </div>
+        )}
 
-        {gameState.status === 'active' && myColor && (
-          <div className="flex flex-col gap-2">
+        {/* Game over card */}
+        {gameOver && (
+          <div className="bg-card border rounded-lg p-4 text-center space-y-2">
+            <div className="text-lg font-bold">
+              {gameOver.result === 'draw'
+                ? t('game.draw')
+                : gameOver.result === myColor
+                  ? t('game.youWon')
+                  : t('game.youLost')}
+            </div>
+            <div className="text-sm text-muted-foreground">
+              {t(`game.terminations.${gameOver.termination}` as any)}
+            </div>
+            {gameOver.whiteRatingDelta != null && (
+              <div className="text-xs text-muted-foreground">
+                {myColor === 'white'
+                  ? (gameOver.whiteRatingDelta >= 0 ? '+' : '') + gameOver.whiteRatingDelta
+                  : (gameOver.blackRatingDelta ?? 0) >= 0
+                    ? `+${gameOver.blackRatingDelta}`
+                    : gameOver.blackRatingDelta
+                } rating
+              </div>
+            )}
+            <div className="flex gap-2 pt-1">
+              <button onClick={() => navigate(`/analysis/${gameOver}`)} className="flex-1 text-primary text-sm hover:underline">
+                {t('game.analyzeGame')}
+              </button>
+              <button onClick={() => navigate('/play')} className="flex-1 bg-primary text-primary-foreground text-sm px-3 py-1.5 rounded-md hover:bg-primary/90 transition-colors">
+                New Game
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Controls */}
+        {isActive && myColor && (
+          <div className="flex gap-2">
             <button
               onClick={handleDrawOffer}
-              className="border px-3 py-2 rounded-md text-sm hover:bg-muted transition-colors"
+              className="flex-1 text-sm border border-border px-3 py-2 rounded-lg hover:bg-muted transition-colors font-medium"
             >
-              Offer Draw
+              ½ {t('game.offerDraw')}
             </button>
             <button
               onClick={handleResign}
-              className="border border-destructive text-destructive px-3 py-2 rounded-md text-sm hover:bg-destructive/10 transition-colors"
+              className="flex-1 text-sm border border-destructive/50 text-destructive px-3 py-2 rounded-lg hover:bg-destructive/10 transition-colors font-medium"
             >
-              Resign
+              🏳 {t('game.resign')}
             </button>
           </div>
         )}
 
-        {gameState.status === 'ended' && (
-          <div className="bg-muted rounded-lg p-4 text-center space-y-2">
-            <div className="font-semibold">
-              {gameState.result === 'draw' ? 'Draw' : gameState.result === myColor ? 'You Won!' : 'You Lost'}
-            </div>
-            <div className="text-sm text-muted-foreground capitalize">{gameState.termination?.replace(/_/g, ' ')}</div>
-            <button
-              onClick={() => navigate(`/analysis/${gameState.id}`)}
-              className="text-primary text-sm hover:underline"
-            >
-              Analyze Game
-            </button>
-          </div>
-        )}
-
-        <div className="bg-card border rounded-lg p-4 max-h-48 overflow-y-auto">
-          <div className="text-xs font-medium text-muted-foreground mb-2">Moves</div>
-          <div className="text-sm font-mono space-y-0.5">
-            {gameState.moves.reduce<Array<{ n: number; w?: string; b?: string }>>(
-              (acc, move) => {
-                if (move.color === 'white') {
-                  acc.push({ n: move.moveNumber, w: move.san });
-                } else {
-                  if (acc.length > 0) acc[acc.length - 1].b = move.san;
-                }
+        {/* Move list */}
+        <div className="bg-card border rounded-lg flex flex-col flex-1 min-h-0">
+          <div className="text-xs font-semibold text-muted-foreground px-3 pt-3 pb-1.5 border-b">{t('game.moves')}</div>
+          <div className="overflow-y-auto flex-1 px-2 py-2 max-h-60">
+            <div className="text-sm font-mono space-y-0.5">
+              {gameState.moves.reduce<Array<{ n: number; w?: string; b?: string }>>((acc, move) => {
+                if (move.color === 'white') acc.push({ n: move.moveNumber, w: move.san });
+                else if (acc.length > 0) acc[acc.length - 1].b = move.san;
                 return acc;
-              },
-              [],
-            ).map(({ n, w, b }) => (
-              <div key={n} className="flex gap-2">
-                <span className="text-muted-foreground w-6">{n}.</span>
-                <span className="w-14">{w ?? ''}</span>
-                <span className="w-14">{b ?? ''}</span>
-              </div>
-            ))}
+              }, []).map(({ n, w, b }) => (
+                <div key={n} className="flex gap-1 hover:bg-muted/60 rounded px-1 py-0.5">
+                  <span className="text-muted-foreground w-6 text-right shrink-0">{n}.</span>
+                  <span className="w-14">{w ?? ''}</span>
+                  <span className="w-14 text-muted-foreground">{b ?? ''}</span>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>

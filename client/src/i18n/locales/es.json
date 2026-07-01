@@ -1,0 +1,100 @@
+{
+  "nav": {
+    "play": "Jugar",
+    "leaderboard": "Clasificación",
+    "login": "Iniciar sesión",
+    "signUp": "Registrarse",
+    "logout": "Cerrar sesión"
+  },
+  "home": {
+    "title": "ChessKernel",
+    "subtitle": "Plataforma de ajedrez gratuita y open-source. Juega online, desafía bots y analiza tus partidas.",
+    "getStarted": "Empezar",
+    "playNow": "Jugar Ahora",
+    "features": {
+      "realtime": { "title": "Tiempo Real", "desc": "Juega partidas en vivo contra oponentes de todo el mundo" },
+      "bots": { "title": "vs Bot", "desc": "Desafía a Stockfish en cualquier nivel de dificultad" },
+      "analysis": { "title": "Análisis", "desc": "Análisis gratuito post-partida con Stockfish" }
+    }
+  },
+  "play": {
+    "title": "Jugar Ajedrez",
+    "online": "Jugar Online",
+    "vsBot": "Jugar vs Bot",
+    "timeControl": "Control de Tiempo",
+    "difficulty": "Dificultad del Bot",
+    "playAs": "Jugar como",
+    "white": "Blancas",
+    "black": "Negras",
+    "random": "Aleatorio",
+    "findGame": "Buscar Partida",
+    "searching": "Buscando oponente",
+    "cancel": "Cancelar",
+    "playVsBot": "Jugar vs Bot",
+    "bullet": "Bullet",
+    "blitz": "Blitz",
+    "rapid": "Rápido",
+    "classical": "Clásico",
+    "difficulties": {
+      "beginner": "Principiante",
+      "easy": "Fácil",
+      "medium": "Medio",
+      "hard": "Difícil",
+      "expert": "Experto",
+      "maximum": "Máximo"
+    }
+  },
+  "game": {
+    "offerDraw": "Ofrecer Tablas",
+    "resign": "Rendirse",
+    "analyzeGame": "Analizar Partida",
+    "you": "Tú",
+    "moves": "Movimientos",
+    "draw": "Tablas",
+    "youWon": "¡Ganaste!",
+    "youLost": "Perdiste",
+    "loading": "Cargando partida…",
+    "drawOffered": "Tablas ofrecidas",
+    "accept": "Aceptar",
+    "decline": "Rechazar",
+    "terminations": {
+      "checkmate": "Jaque mate",
+      "timeout": "Tiempo agotado",
+      "resignation": "Abandono",
+      "draw_agreement": "Tablas por acuerdo",
+      "stalemate": "Ahogado",
+      "insufficient_material": "Material insuficiente",
+      "threefold_repetition": "Triple repetición",
+      "fifty_move_rule": "Regla de los 50 movimientos",
+      "abandoned": "Abandonada"
+    }
+  },
+  "auth": {
+    "login": "Iniciar sesión",
+    "register": "Crear Cuenta",
+    "email": "Correo electrónico",
+    "password": "Contraseña",
+    "username": "Usuario",
+    "welcomeBack": "Bienvenido de nuevo",
+    "loginSubtitle": "Inicia sesión en tu cuenta ChessKernel",
+    "registerSubtitle": "Crea tu cuenta gratuita en ChessKernel",
+    "noAccount": "¿No tienes cuenta?",
+    "hasAccount": "¿Ya tienes cuenta?",
+    "signUp": "Regístrate",
+    "loginLink": "Iniciar sesión",
+    "loggingIn": "Iniciando sesión…",
+    "creating": "Creando cuenta…"
+  },
+  "leaderboard": {
+    "title": "Clasificación",
+    "rank": "Posición",
+    "player": "Jugador",
+    "rating": "Rating",
+    "games": "Partidas",
+    "winRate": "Tasa de Victoria"
+  },
+  "theme": {
+    "light": "Claro",
+    "dark": "Oscuro"
+  }
+}

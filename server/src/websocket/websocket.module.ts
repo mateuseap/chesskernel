@@ -4,9 +4,10 @@ import { PresenceService } from './presence.service';
 import { GamesModule } from '../modules/games/games.module';
 import { MatchmakingModule } from '../modules/matchmaking/matchmaking.module';
 import { AuthModule } from '../modules/auth/auth.module';
+import { BotsModule } from '../modules/bots/bots.module';
 
 @Module({
-  imports: [GamesModule, MatchmakingModule, AuthModule],
+  imports: [GamesModule, MatchmakingModule, AuthModule, BotsModule],
   providers: [GameGateway, PresenceService],
   exports: [GameGateway, PresenceService],
 })

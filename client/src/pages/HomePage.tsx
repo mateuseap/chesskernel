@@ -1,54 +1,60 @@
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '@/stores/auth.store';
 
 export function HomePage() {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const { t } = useTranslation();
+
+  const features = [
+    { icon: '⚡', key: 'realtime' },
+    { icon: '🤖', key: 'bots' },
+    { icon: '📊', key: 'analysis' },
+  ] as const;
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[70vh] gap-8 text-center">
-      <div className="space-y-4">
-        <h1 className="text-6xl font-bold text-primary">♔ ChessKernel</h1>
-        <p className="text-xl text-muted-foreground max-w-md">
-          Free, open-source chess platform. Play online, challenge bots, and analyze your games.
+    <div className="flex flex-col items-center justify-center min-h-[75vh] gap-12 text-center px-4">
+      <div className="space-y-5 max-w-2xl">
+        <div className="text-7xl font-black tracking-tighter text-primary drop-shadow-sm">
+          ♔ {t('home.title')}
+        </div>
+        <p className="text-lg text-muted-foreground leading-relaxed max-w-lg mx-auto">
+          {t('home.subtitle')}
         </p>
       </div>
 
-      <div className="flex gap-4">
+      <div className="flex gap-3">
         {isAuthenticated ? (
           <Link
             to="/play"
-            className="bg-primary text-primary-foreground px-8 py-3 rounded-lg text-lg font-semibold hover:bg-primary/90 transition-colors"
+            className="bg-primary text-primary-foreground px-10 py-3.5 rounded-xl text-base font-bold hover:bg-primary/90 transition-all shadow-lg shadow-primary/30 hover:shadow-primary/50"
           >
-            Play Now
+            {t('home.playNow')}
           </Link>
         ) : (
           <>
             <Link
               to="/register"
-              className="bg-primary text-primary-foreground px-8 py-3 rounded-lg text-lg font-semibold hover:bg-primary/90 transition-colors"
+              className="bg-primary text-primary-foreground px-10 py-3.5 rounded-xl text-base font-bold hover:bg-primary/90 transition-all shadow-lg shadow-primary/30 hover:shadow-primary/50"
             >
-              Get Started
+              {t('home.getStarted')}
             </Link>
             <Link
               to="/login"
-              className="border border-border px-8 py-3 rounded-lg text-lg font-semibold hover:bg-muted transition-colors"
+              className="border-2 border-border px-10 py-3.5 rounded-xl text-base font-bold hover:bg-muted transition-all"
             >
-              Login
+              {t('nav.login')}
             </Link>
           </>
         )}
       </div>
 
-      <div className="grid grid-cols-3 gap-6 mt-8 max-w-2xl">
-        {[
-          { icon: '⚡', title: 'Real-time', desc: 'Play live games against opponents worldwide' },
-          { icon: '🤖', title: 'Bot Games', desc: 'Challenge Stockfish at any difficulty level' },
-          { icon: '📊', title: 'Analysis', desc: 'Free post-game analysis powered by Stockfish' },
-        ].map(({ icon, title, desc }) => (
-          <div key={title} className="bg-card border rounded-lg p-4 space-y-2">
-            <div className="text-3xl">{icon}</div>
-            <h3 className="font-semibold">{title}</h3>
-            <p className="text-sm text-muted-foreground">{desc}</p>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-2xl w-full">
+        {features.map(({ icon, key }) => (
+          <div key={key} className="bg-card border rounded-2xl p-5 space-y-2 hover:border-primary/40 transition-colors text-left">
+            <div className="text-4xl">{icon}</div>
+            <h3 className="font-bold text-sm">{t(`home.features.${key}.title`)}</h3>
+            <p className="text-xs text-muted-foreground leading-relaxed">{t(`home.features.${key}.desc`)}</p>
           </div>
         ))}
       </div>

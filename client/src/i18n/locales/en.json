@@ -1,0 +1,100 @@
+{
+  "nav": {
+    "play": "Play",
+    "leaderboard": "Leaderboard",
+    "login": "Login",
+    "signUp": "Sign Up",
+    "logout": "Logout"
+  },
+  "home": {
+    "title": "ChessKernel",
+    "subtitle": "Free, open-source chess platform. Play online, challenge bots, and analyze your games.",
+    "getStarted": "Get Started",
+    "playNow": "Play Now",
+    "features": {
+      "realtime": { "title": "Real-time", "desc": "Play live games against opponents worldwide" },
+      "bots": { "title": "Bot Games", "desc": "Challenge Stockfish at any difficulty level" },
+      "analysis": { "title": "Analysis", "desc": "Free post-game analysis powered by Stockfish" }
+    }
+  },
+  "play": {
+    "title": "Play Chess",
+    "online": "Play Online",
+    "vsBot": "Play vs Bot",
+    "timeControl": "Time Control",
+    "difficulty": "Bot Difficulty",
+    "playAs": "Play as",
+    "white": "White",
+    "black": "Black",
+    "random": "Random",
+    "findGame": "Find Game",
+    "searching": "Searching for opponent",
+    "cancel": "Cancel",
+    "playVsBot": "Play vs Bot",
+    "bullet": "Bullet",
+    "blitz": "Blitz",
+    "rapid": "Rapid",
+    "classical": "Classical",
+    "difficulties": {
+      "beginner": "Beginner",
+      "easy": "Easy",
+      "medium": "Medium",
+      "hard": "Hard",
+      "expert": "Expert",
+      "maximum": "Maximum"
+    }
+  },
+  "game": {
+    "offerDraw": "Offer Draw",
+    "resign": "Resign",
+    "analyzeGame": "Analyze Game",
+    "you": "You",
+    "moves": "Moves",
+    "draw": "Draw",
+    "youWon": "You Won!",
+    "youLost": "You Lost",
+    "loading": "Loading game…",
+    "drawOffered": "Draw offered",
+    "accept": "Accept",
+    "decline": "Decline",
+    "terminations": {
+      "checkmate": "Checkmate",
+      "timeout": "Timeout",
+      "resignation": "Resignation",
+      "draw_agreement": "Draw by agreement",
+      "stalemate": "Stalemate",
+      "insufficient_material": "Insufficient material",
+      "threefold_repetition": "Threefold repetition",
+      "fifty_move_rule": "Fifty-move rule",
+      "abandoned": "Abandoned"
+    }
+  },
+  "auth": {
+    "login": "Login",
+    "register": "Create Account",
+    "email": "Email",
+    "password": "Password",
+    "username": "Username",
+    "welcomeBack": "Welcome back",
+    "loginSubtitle": "Login to your ChessKernel account",
+    "registerSubtitle": "Create your free ChessKernel account",
+    "noAccount": "Don't have an account?",
+    "hasAccount": "Already have an account?",
+    "signUp": "Sign up",
+    "loginLink": "Login",
+    "loggingIn": "Logging in…",
+    "creating": "Creating account…"
+  },
+  "leaderboard": {
+    "title": "Leaderboard",
+    "rank": "Rank",
+    "player": "Player",
+    "rating": "Rating",
+    "games": "Games",
+    "winRate": "Win Rate"
+  },
+  "theme": {
+    "light": "Light",
+    "dark": "Dark"
+  }
+}

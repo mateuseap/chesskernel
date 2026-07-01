@@ -1,12 +1,8 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { Chess } from 'chess.js';
-import { motion } from 'framer-motion';
+import { ChessPiece } from './ChessPiece';
+import { cn } from '@/lib/utils';
 import type { Color, Square } from '@chesskernel/shared';
-
-const PIECE_UNICODE: Record<string, string> = {
-  wK: '♔', wQ: '♕', wR: '♖', wB: '♗', wN: '♘', wP: '♙',
-  bK: '♚', bQ: '♛', bR: '♜', bB: '♝', bN: '♞', bP: '♟',
-};
 
 const FILES = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
 const RANKS = ['8', '7', '6', '5', '4', '3', '2', '1'];
@@ -19,7 +15,12 @@ interface ChessBoardProps {
   lastMove: { from: Square; to: Square } | null;
   isCheck: boolean;
   onSquareClick: (square: Square) => void;
+  onDrop?: (from: Square, to: Square) => void;
   disabled?: boolean;
+}
+
+function squareColor(file: string, rank: string): 'light' | 'dark' {
+  return (FILES.indexOf(file) + parseInt(rank, 10)) % 2 === 0 ? 'dark' : 'light';
 }
 
 export function ChessBoard({
@@ -30,95 +31,137 @@ export function ChessBoard({
   lastMove,
   isCheck,
   onSquareClick,
+  onDrop,
   disabled = false,
 }: ChessBoardProps) {
   const chess = useMemo(() => new Chess(fen), [fen]);
+  const dragSquare = useRef<Square | null>(null);
+  const [dragOver, setDragOver] = useState<Square | null>(null);
 
   const files = orientation === 'white' ? FILES : [...FILES].reverse();
   const ranks = orientation === 'white' ? RANKS : [...RANKS].reverse();
 
-  const getSquareColor = useCallback(
-    (file: string, rank: string): 'light' | 'dark' => {
-      const fileIdx = FILES.indexOf(file);
-      const rankIdx = parseInt(rank, 10) - 1;
-      return (fileIdx + rankIdx) % 2 === 0 ? 'dark' : 'light';
-    },
-    [],
-  );
-
-  const getSquareHighlight = useCallback(
-    (square: Square) => {
-      if (square === selectedSquare) return 'selected';
-      if (lastMove && (square === lastMove.from || square === lastMove.to)) return 'lastMove';
-      if (legalMoves.includes(square)) return 'legalMove';
-
-      const piece = chess.get(square as Square);
+  const getHighlight = useCallback(
+    (sq: Square): 'selected' | 'lastMove' | 'legalMove' | 'check' | null => {
+      if (sq === selectedSquare) return 'selected';
+      if (lastMove && (sq === lastMove.from || sq === lastMove.to)) return 'lastMove';
+      if (legalMoves.includes(sq)) return 'legalMove';
+      const piece = chess.get(sq);
       if (isCheck && piece?.type === 'k' && piece?.color === chess.turn()) return 'check';
-
       return null;
     },
     [selectedSquare, lastMove, legalMoves, chess, isCheck],
   );
 
+  const handleDragStart = (e: React.DragEvent, sq: Square) => {
+    if (disabled) { e.preventDefault(); return; }
+    dragSquare.current = sq;
+    e.dataTransfer.effectAllowed = 'move';
+    // ghost image: use a 1x1 transparent image so we render our own
+    const ghost = document.createElement('canvas');
+    ghost.width = ghost.height = 1;
+    e.dataTransfer.setDragImage(ghost, 0, 0);
+  };
+
+  const handleDragOver = (e: React.DragEvent, sq: Square) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    setDragOver(sq);
+  };
+
+  const handleDrop = (e: React.DragEvent, sq: Square) => {
+    e.preventDefault();
+    setDragOver(null);
+    if (!dragSquare.current || dragSquare.current === sq) return;
+    if (onDrop) onDrop(dragSquare.current, sq);
+    dragSquare.current = null;
+  };
+
+  const handleDragEnd = () => {
+    dragSquare.current = null;
+    setDragOver(null);
+  };
+
   return (
-    <div className="chess-board relative select-none" style={{ aspectRatio: '1' }}>
-      <div className="grid grid-cols-8 grid-rows-8 h-full w-full border border-gray-700">
-        {ranks.map((rank) =>
-          files.map((file) => {
-            const square = `${file}${rank}` as Square;
-            const piece = chess.get(square);
-            const squareColor = getSquareColor(file, rank);
-            const highlight = getSquareHighlight(square);
-
-            const baseColor =
-              squareColor === 'light' ? 'bg-chess-light' : 'bg-chess-dark';
-
-            const highlightClass =
-              highlight === 'selected'
-                ? 'bg-chess-selected'
-                : highlight === 'lastMove'
-                  ? 'bg-chess-lastMove'
-                  : highlight === 'check'
-                    ? 'bg-chess-check'
-                    : baseColor;
-
-            const pieceKey = piece ? `${piece.color}${piece.type.toUpperCase()}` : null;
+    <div className="relative select-none w-full aspect-square rounded-sm overflow-hidden shadow-2xl border border-black/20 dark:border-white/10">
+      <div className="grid grid-cols-8 grid-rows-8 h-full w-full">
+        {ranks.map((rank, ri) =>
+          files.map((file, fi) => {
+            const sq = `${file}${rank}` as Square;
+            const piece = chess.get(sq);
+            const sc = squareColor(file, rank);
+            const hl = getHighlight(sq);
+            const isDragTarget = dragOver === sq;
+            const isLegal = legalMoves.includes(sq);
+            const isLastMove = lastMove && (sq === lastMove.from || sq === lastMove.to);
+            const isDragging = dragSquare.current === sq;
 
             return (
               <div
-                key={square}
-                className={`chess-square ${highlightClass} cursor-pointer hover:brightness-90 transition-all`}
-                onClick={() => !disabled && onSquareClick(square)}
+                key={sq}
+                className={cn(
+                  'relative flex items-center justify-center cursor-pointer transition-colors duration-75',
+                  sc === 'light'
+                    ? 'bg-[#f0d9b5] dark:bg-[#cda882]'
+                    : 'bg-[#b58863] dark:bg-[#8b6443]',
+                  hl === 'selected' && 'bg-[#f6f669] dark:bg-[#caca2f]',
+                  isLastMove && !hl && 'bg-[#cdd16a] dark:bg-[#a8ac41]',
+                  hl === 'check' && 'bg-red-500',
+                  isDragTarget && isLegal && 'brightness-110',
+                )}
+                onClick={() => !disabled && onSquareClick(sq)}
+                onDragOver={(e) => handleDragOver(e, sq)}
+                onDrop={(e) => handleDrop(e, sq)}
               >
-                {highlight === 'legalMove' && !piece && (
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="w-1/3 h-1/3 rounded-full bg-black/20" />
-                  </div>
-                )}
-                {highlight === 'legalMove' && piece && (
-                  <div className="absolute inset-0 rounded-full ring-4 ring-black/30" />
-                )}
-                {piece && pieceKey && (
-                  <motion.span
-                    key={`${square}-${piece.type}-${piece.color}`}
-                    className="chess-piece text-4xl z-10 leading-none"
-                    style={{ textShadow: piece.color === 'w' ? '0 1px 2px rgba(0,0,0,0.4)' : '0 1px 2px rgba(255,255,255,0.2)' }}
-                    initial={{ scale: 0.8, opacity: 0.7 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    transition={{ duration: 0.1 }}
-                  >
-                    {PIECE_UNICODE[pieceKey]}
-                  </motion.span>
-                )}
-                {file === files[0] && (
-                  <span className="absolute top-0.5 left-0.5 text-xs font-bold opacity-60 text-foreground">
+                {/* Coordinate labels */}
+                {fi === 0 && (
+                  <span className={cn(
+                    'absolute top-0.5 left-0.5 text-[10px] font-bold leading-none z-10 pointer-events-none',
+                    sc === 'light' ? 'text-[#b58863]' : 'text-[#f0d9b5]',
+                  )}>
                     {rank}
                   </span>
                 )}
-                {rank === ranks[ranks.length - 1] && (
-                  <span className="absolute bottom-0.5 right-0.5 text-xs font-bold opacity-60 text-foreground">
+                {ri === 7 && (
+                  <span className={cn(
+                    'absolute bottom-0.5 right-1 text-[10px] font-bold leading-none z-10 pointer-events-none',
+                    sc === 'light' ? 'text-[#b58863]' : 'text-[#f0d9b5]',
+                  )}>
                     {file}
                   </span>
+                )}
+
+                {/* Legal move dots */}
+                {isLegal && !piece && (
+                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
+                    <div className="w-[32%] h-[32%] rounded-full bg-black/25 dark:bg-black/35" />
+                  </div>
+                )}
+                {isLegal && piece && (
+                  <div className="absolute inset-0 rounded-sm ring-[6px] ring-black/25 dark:ring-black/35 pointer-events-none z-10" />
+                )}
+
+                {/* Drag-over highlight ring */}
+                {isDragTarget && (
+                  <div className="absolute inset-0 bg-[#f6f669]/60 pointer-events-none z-10" />
+                )}
+
+                {/* Piece */}
+                {piece && (
+                  <div
+                    draggable={!disabled}
+                    onDragStart={(e) => handleDragStart(e, sq)}
+                    onDragEnd={handleDragEnd}
+                    className={cn(
+                      'absolute inset-0 flex items-center justify-center z-20 transition-opacity',
+                      isDragging && 'opacity-40',
+                      !disabled && 'cursor-grab active:cursor-grabbing',
+                    )}
+                  >
+                    <div className="w-[85%] h-[85%] drop-shadow-[0_2px_3px_rgba(0,0,0,0.5)]">
+                      <ChessPiece type={piece.type as any} color={piece.color as 'w' | 'b'} />
+                    </div>
+                  </div>
                 )}
               </div>
             );
