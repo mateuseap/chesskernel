@@ -11,10 +11,15 @@
     "subtitle": "Plataforma de ajedrez gratuita y open-source. Juega online, desafía bots y analiza tus partidas.",
     "getStarted": "Empezar",
     "playNow": "Jugar Ahora",
+    "featuresTitle": "Todo lo que necesitas para jugar ajedrez",
+    "featuresSubtitle": "Una experiencia completa sin suscripciones, sin anuncios, sin rastreo.",
     "features": {
-      "realtime": { "title": "Tiempo Real", "desc": "Juega en vivo contra oponentes de todo el mundo" },
-      "bots": { "title": "vs Bot", "desc": "Desafía a Stockfish en cualquier nivel" },
-      "analysis": { "title": "Análisis", "desc": "Análisis gratuito post-partida con Stockfish" }
+      "realtime":  { "title": "Juego en Vivo",      "desc": "Partidas en directo con movimientos instantáneos." },
+      "bots":      { "title": "vs Stockfish",        "desc": "Desafía al mejor motor de ajedrez en cualquier nivel." },
+      "analysis":  { "title": "Análisis de Jugadas", "desc": "Revisión automática con clasificación de jugadas." },
+      "ladder":    { "title": "Clasificación",       "desc": "Ratings separados para bullet, blitz, rapid y clásico." },
+      "selfhost":  { "title": "Auto-alojado",        "desc": "Código abierto y desplegable en tu propia infraestructura." },
+      "multilang": { "title": "Multilingüe",         "desc": "Soporte completo para inglés, portugués y español." }
     }
   },
   "play": {

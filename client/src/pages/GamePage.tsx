@@ -8,7 +8,6 @@ import { useAuthStore } from '@/stores/auth.store';
 import { getSocket } from '@/services/socket';
 import { api } from '@/services/api';
 import { cn } from '@/lib/utils';
-import type { Arrow } from 'react-chessboard/dist/chessboard/types';
 import type { Square, GameOverPayload, MoveBroadcastPayload } from '@chesskernel/shared';
 
 type Sq = string;
@@ -20,7 +19,6 @@ export function GamePage() {
   const user = useAuthStore((s) => s.user);
   const [drawOffered, setDrawOffered] = useState<'white' | 'black' | null>(null);
   const [gameOver, setGameOver] = useState<GameOverPayload | null>(null);
-  const [arrows, setArrows] = useState<Arrow[]>([]);
   const [illegalFlash, setIllegalFlash] = useState(false);
   const flashTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -179,6 +177,7 @@ export function GamePage() {
         </div>
 
         <ChessBoard
+          key={gameState.moves.length}
           fen={gameState.fen}
           orientation={orientation}
           selectedSquare={selectedSquare as Square | null}
@@ -188,8 +187,6 @@ export function GamePage() {
           onSquareClick={handleSquareClick}
           onDrop={handleDrop}
           disabled={!isActive || !isMyTurn}
-          arrows={arrows}
-          onArrowsChange={setArrows}
           illegalFlash={illegalFlash}
         />
 

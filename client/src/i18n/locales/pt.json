@@ -11,10 +11,15 @@
     "subtitle": "Plataforma de xadrez gratuita e open-source. Jogue online, desafie bots e analise suas partidas.",
     "getStarted": "Começar",
     "playNow": "Jogar Agora",
+    "featuresTitle": "Tudo que você precisa para jogar xadrez",
+    "featuresSubtitle": "Uma experiência completa sem assinaturas, sem anúncios, sem rastreamento.",
     "features": {
-      "realtime": { "title": "Tempo Real", "desc": "Jogue ao vivo contra oponentes do mundo todo" },
-      "bots": { "title": "vs Bot", "desc": "Desafie o Stockfish em qualquer nível" },
-      "analysis": { "title": "Análise", "desc": "Análise gratuita pós-partida com Stockfish" }
+      "realtime":  { "title": "Jogo em Tempo Real",  "desc": "Partidas ao vivo com lances instantâneos." },
+      "bots":      { "title": "vs Stockfish",         "desc": "Desafie o melhor motor de xadrez em qualquer nível." },
+      "analysis":  { "title": "Análise de Lances",    "desc": "Revisão automática com classificação de lances." },
+      "ladder":    { "title": "Classificação",        "desc": "Ratings separados para bullet, blitz, rapid e clássico." },
+      "selfhost":  { "title": "Auto-hospedagem",      "desc": "Open source e implantável na sua infraestrutura." },
+      "multilang": { "title": "Multilíngue",          "desc": "Suporte completo para inglês, português e espanhol." }
     }
   },
   "play": {

@@ -3,14 +3,18 @@ import { Chessboard } from 'react-chessboard';
 import type { Square as RCBSquare, Piece, Arrow } from 'react-chessboard/dist/chessboard/types';
 import { cn } from '@/lib/utils';
 
-const CLASSIFICATION_COLORS: Record<string, string> = {
-  blunder:    'rgba(220, 40,  40,  0.55)',
-  mistake:    'rgba(220, 120, 40,  0.50)',
-  inaccuracy: 'rgba(220, 180, 40,  0.45)',
-  book:       'rgba(100, 140, 220, 0.40)',
-  good:       'rgba(80,  160, 220, 0.35)',
-  excellent:  'rgba(80,  200, 100, 0.40)',
-  best:       'rgba(50,  200, 80,  0.45)',
+// Chess.com exact classification colors for board squares
+const CLASSIFICATION_SQUARE_COLORS: Record<string, string> = {
+  brilliant:  'rgba(27,  170, 166, 0.55)',
+  great:      'rgba(91,  163, 176, 0.55)',
+  best:       'rgba(150, 188, 75,  0.50)',
+  excellent:  'rgba(150, 188, 75,  0.40)',
+  good:       'rgba(150, 188, 75,  0.28)',
+  book:       'rgba(168, 136, 101, 0.55)',
+  inaccuracy: 'rgba(240, 198, 72,  0.55)',
+  mistake:    'rgba(230, 139, 44,  0.55)',
+  blunder:    'rgba(202, 52,  49,  0.55)',
+  miss:       'rgba(202, 52,  49,  0.45)',
 };
 
 interface ChessBoardProps {
@@ -23,14 +27,9 @@ interface ChessBoardProps {
   onSquareClick: (sq: string) => void;
   onDrop?: (from: string, to: string) => boolean;
   disabled?: boolean;
-  /** Analysis: color "to" square by move quality */
   moveClassification?: string | null;
-  /** Analysis: draw green arrow for best alternative */
-  bestMoveArrow?: [string, string] | null;
-  /** User-drawn arrows (right-click drag) */
-  arrows?: Arrow[];
-  onArrowsChange?: (arrows: Arrow[]) => void;
-  /** Flash red border on illegal move attempt */
+  /** Arrow from best-move alternative (analysis page) */
+  customArrows?: Arrow[];
   illegalFlash?: boolean;
 }
 
@@ -44,21 +43,18 @@ export function ChessBoard({
   onDrop,
   disabled = false,
   moveClassification,
-  bestMoveArrow,
-  arrows = [],
-  onArrowsChange,
+  customArrows,
   illegalFlash = false,
 }: ChessBoardProps) {
   const customSquareStyles: Record<string, React.CSSProperties> = {};
 
   if (lastMove) {
-    const classColor = moveClassification ? CLASSIFICATION_COLORS[moveClassification] : undefined;
-    customSquareStyles[lastMove.from] = {
-      backgroundColor: classColor ?? 'rgba(155, 199, 0, 0.41)',
-    };
-    customSquareStyles[lastMove.to] = {
-      backgroundColor: classColor ?? 'rgba(155, 199, 0, 0.41)',
-    };
+    const classColor = moveClassification
+      ? CLASSIFICATION_SQUARE_COLORS[moveClassification]
+      : undefined;
+    const defaultHighlight = 'rgba(155, 199, 0, 0.38)';
+    customSquareStyles[lastMove.from] = { backgroundColor: classColor ?? defaultHighlight };
+    customSquareStyles[lastMove.to]   = { backgroundColor: classColor ?? defaultHighlight };
   }
 
   if (selectedSquare) {
@@ -67,14 +63,9 @@ export function ChessBoard({
 
   legalMoves.forEach((sq) => {
     customSquareStyles[sq] = {
-      background: 'radial-gradient(circle, rgba(0,0,0,.18) 26%, transparent 26%)',
+      background: 'radial-gradient(circle, rgba(0,0,0,.15) 24%, transparent 24%)',
     };
   });
-
-  const allArrows: Arrow[] = [...arrows];
-  if (bestMoveArrow) {
-    allArrows.push([bestMoveArrow[0] as RCBSquare, bestMoveArrow[1] as RCBSquare, 'rgba(0, 190, 100, 0.8)']);
-  }
 
   const handlePieceDrop = useCallback(
     (source: RCBSquare, target: RCBSquare, _piece: Piece): boolean => {
@@ -95,7 +86,7 @@ export function ChessBoard({
   return (
     <div
       className={cn(
-        'w-full aspect-square select-none rounded-sm transition-shadow duration-200',
+        'w-full aspect-square select-none',
         illegalFlash && 'animate-illegal-flash',
       )}
     >
@@ -104,15 +95,14 @@ export function ChessBoard({
         boardOrientation={orientation}
         onPieceDrop={handlePieceDrop}
         onSquareClick={handleSquareClick}
-        onArrowsChange={onArrowsChange}
         arePiecesDraggable={!disabled}
         customSquareStyles={customSquareStyles as any}
-        customArrows={allArrows}
+        customArrows={customArrows}
         customDarkSquareStyle={{ backgroundColor: '#769656' }}
         customLightSquareStyle={{ backgroundColor: '#eeeed2' }}
-        customBoardStyle={{ borderRadius: '2px', boxShadow: '0 4px 32px rgba(0,0,0,0.45)' }}
+        customBoardStyle={{ borderRadius: '2px', boxShadow: '0 6px 40px rgba(0,0,0,0.4)' }}
         showBoardNotation
-        animationDuration={150}
+        animationDuration={0}
       />
     </div>
   );

@@ -84,6 +84,21 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @MessageBody() payload: GameIdPayload,
   ) {
     socket.join(`game:${payload.gameId}`);
+
+    // Check if game already ended (reconnect after refresh)
+    const game = await this.gamesService.getGame(payload.gameId);
+    if (game.status === 'ended') {
+      socket.emit('game:over', {
+        result: game.result ?? 'draw',
+        termination: game.termination ?? 'unknown',
+        winner: game.result === 'draw' ? null : game.result,
+        pgn: game.pgn ?? '',
+        whiteRatingDelta: 0,
+        blackRatingDelta: 0,
+      });
+      return;
+    }
+
     const state = await this.gameStateService.getState(payload.gameId);
     if (state) {
       socket.emit('game:clock', {

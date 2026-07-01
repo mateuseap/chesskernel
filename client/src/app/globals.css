@@ -4,50 +4,50 @@
 
 @layer base {
   :root {
-    /* Light mode — warm off-white like chess.com */
-    --background: 36 20% 95%;
-    --foreground: 222 25% 10%;
+    /* Light — warm cream, chess.com-inspired */
+    --background: 40 25% 93%;
+    --foreground: 225 25% 13%;
     --card: 0 0% 100%;
-    --card-foreground: 222 25% 10%;
+    --card-foreground: 225 25% 13%;
     --popover: 0 0% 100%;
-    --popover-foreground: 222 25% 10%;
-    --primary: 142 60% 30%;
+    --popover-foreground: 225 25% 13%;
+    --primary: 92 55% 34%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 36 15% 88%;
-    --secondary-foreground: 222 20% 20%;
-    --muted: 36 10% 90%;
-    --muted-foreground: 220 10% 48%;
-    --accent: 36 15% 88%;
-    --accent-foreground: 222 20% 20%;
-    --destructive: 0 72% 50%;
+    --secondary: 40 18% 87%;
+    --secondary-foreground: 225 20% 20%;
+    --muted: 40 18% 88%;
+    --muted-foreground: 225 8% 44%;
+    --accent: 40 18% 87%;
+    --accent-foreground: 225 20% 20%;
+    --destructive: 2 72% 48%;
     --destructive-foreground: 0 0% 100%;
-    --border: 36 10% 82%;
-    --input: 0 0% 96%;
-    --ring: 142 60% 30%;
+    --border: 36 14% 80%;
+    --input: 0 0% 97%;
+    --ring: 92 55% 34%;
     --radius: 0.5rem;
   }
 
   .dark {
-    /* Dark mode — deep navy like chess.com dark */
-    --background: 224 28% 12%;
-    --foreground: 210 25% 92%;
-    --card: 224 24% 16%;
-    --card-foreground: 210 25% 92%;
-    --popover: 224 24% 16%;
-    --popover-foreground: 210 25% 92%;
-    --primary: 142 52% 44%;
+    /* Dark — deep navy, chess.com dark-inspired */
+    --background: 225 16% 12%;
+    --foreground: 220 14% 90%;
+    --card: 224 16% 17%;
+    --card-foreground: 220 14% 90%;
+    --popover: 224 16% 17%;
+    --popover-foreground: 220 14% 90%;
+    --primary: 88 42% 48%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 224 20% 22%;
-    --secondary-foreground: 210 20% 80%;
-    --muted: 224 20% 20%;
-    --muted-foreground: 215 15% 52%;
-    --accent: 224 20% 22%;
-    --accent-foreground: 210 20% 80%;
-    --destructive: 0 62% 50%;
+    --secondary: 224 14% 23%;
+    --secondary-foreground: 220 12% 78%;
+    --muted: 224 14% 22%;
+    --muted-foreground: 220 10% 58%;
+    --accent: 224 14% 23%;
+    --accent-foreground: 220 12% 78%;
+    --destructive: 2 65% 50%;
     --destructive-foreground: 0 0% 100%;
-    --border: 224 18% 24%;
-    --input: 224 22% 18%;
-    --ring: 142 52% 44%;
+    --border: 224 14% 26%;
+    --input: 224 16% 20%;
+    --ring: 88 42% 48%;
   }
 }
 
@@ -57,41 +57,30 @@
   }
   html {
     @apply antialiased;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
   body {
     @apply bg-background text-foreground;
     font-feature-settings: 'rlig' 1, 'calt' 1;
   }
   ::selection {
-    @apply bg-primary/30;
+    @apply bg-primary/25;
   }
-}
-
-/* Smooth theme transitions — only color-related properties */
-*, *::before, *::after {
-  transition-property: color, background-color, border-color, fill, stroke;
-  transition-duration: 150ms;
-  transition-timing-function: ease;
-}
-
-/* Keep transforms and size transitions instant (don't inherit above) */
-button, a, input, select, textarea {
-  transition-property: color, background-color, border-color, box-shadow, opacity;
-  transition-duration: 150ms;
 }
 
 /* Illegal move flash */
 @keyframes illegal-flash {
-  0%   { box-shadow: none; }
-  30%  { box-shadow: inset 0 0 0 4px rgba(220, 40, 40, 0.75); }
-  100% { box-shadow: none; }
+  0%,100% { box-shadow: none; }
+  40%     { box-shadow: inset 0 0 0 4px rgba(202, 52, 49, 0.80); }
 }
 .animate-illegal-flash {
-  animation: illegal-flash 0.35s ease-out;
+  animation: illegal-flash 0.38s ease-out forwards;
 }
 
 /* Scrollbar */
-::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { @apply bg-transparent; }
-::-webkit-scrollbar-thumb { @apply bg-border rounded-full; }
-::-webkit-scrollbar-thumb:hover { @apply bg-muted-foreground/40; }
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: hsl(var(--border)); border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: hsl(var(--muted-foreground) / 0.5); }
