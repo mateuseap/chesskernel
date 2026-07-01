@@ -1,0 +1,29 @@
+{
+  "name": "chesskernel",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Production-grade self-hosted chess platform",
+  "workspaces": [
+    "client",
+    "server",
+    "shared"
+  ],
+  "scripts": {
+    "dev": "concurrently \"pnpm --filter client dev\" \"pnpm --filter server dev\"",
+    "build": "pnpm --filter shared build && pnpm --filter client build && pnpm --filter server build",
+    "test": "pnpm --filter client test && pnpm --filter server test",
+    "test:e2e": "pnpm --filter server test:e2e",
+    "lint": "pnpm --filter client lint && pnpm --filter server lint",
+    "typecheck": "pnpm --filter client typecheck && pnpm --filter server typecheck && pnpm --filter shared typecheck",
+    "format": "prettier --write \"**/*.{ts,tsx,json,md}\" --ignore-path .gitignore"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "prettier": "^3.2.5"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=8.0.0"
+  },
+  "packageManager": "pnpm@8.15.6"
+}

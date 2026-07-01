@@ -1,0 +1,288 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Enums ────────────────────────────────────────────────────────────────────
+
+enum TimeControl {
+  bullet
+  blitz
+  rapid
+  classical
+}
+
+enum GameStatus {
+  waiting
+  active
+  ended
+  abandoned
+}
+
+enum GameResult {
+  white
+  black
+  draw
+  abandoned
+}
+
+enum GameTermination {
+  checkmate
+  timeout
+  resignation
+  draw_agreement
+  stalemate
+  insufficient_material
+  threefold_repetition
+  fifty_move_rule
+  abandoned
+}
+
+enum Color {
+  white
+  black
+}
+
+enum FriendStatus {
+  pending
+  accepted
+  blocked
+}
+
+enum InvitationStatus {
+  pending
+  accepted
+  declined
+  expired
+}
+
+enum ColorPreference {
+  white
+  black
+  random
+}
+
+enum AnalysisStatus {
+  pending
+  processing
+  completed
+  failed
+}
+
+enum MoveClassification {
+  book
+  best
+  excellent
+  good
+  inaccuracy
+  mistake
+  blunder
+}
+
+enum NotificationType {
+  friend_request
+  friend_accepted
+  game_invite
+  game_started
+  game_ended
+  system
+}
+
+// ─── Models ───────────────────────────────────────────────────────────────────
+
+model User {
+  id            String    @id @default(uuid())
+  username      String    @unique @db.VarChar(30)
+  email         String    @unique @db.VarChar(255)
+  passwordHash  String    @db.VarChar(255)
+  avatarUrl     String?
+  bio           String?
+  country       String?   @db.VarChar(2)
+  isAdmin       Boolean   @default(false)
+  isBanned      Boolean   @default(false)
+  emailVerified Boolean   @default(false)
+  createdAt     DateTime  @default(now())
+  lastSeenAt    DateTime?
+
+  ratings        UserRating[]
+  gamesAsWhite   Game[]         @relation("WhitePlayer")
+  gamesAsBlack   Game[]         @relation("BlackPlayer")
+  friendsInitiated Friend[]     @relation("Requester")
+  friendsReceived  Friend[]     @relation("Addressee")
+  sentInvitations    Invitation[] @relation("InvitationSender")
+  receivedInvitations Invitation[] @relation("InvitationReceiver")
+  notifications  Notification[]
+  refreshTokens  RefreshToken[]
+
+  @@map("users")
+}
+
+model UserRating {
+  id              String      @id @default(uuid())
+  userId          String
+  timeControl     TimeControl
+  rating          Int         @default(1200)
+  ratingDeviation Float       @default(350)
+  volatility      Float       @default(0.06)
+  gamesPlayed     Int         @default(0)
+  updatedAt       DateTime    @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, timeControl])
+  @@index([rating(sort: Desc)])
+  @@map("user_ratings")
+}
+
+model Game {
+  id              String           @id @default(uuid())
+  whiteId         String?
+  blackId         String?
+  timeControl     TimeControl
+  initialTimeMs   Int
+  incrementMs     Int              @default(0)
+  status          GameStatus       @default(waiting)
+  result          GameResult?
+  termination     GameTermination?
+  initialFen      String           @default("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
+  pgn             String?
+  whiteRatingBefore Int?
+  blackRatingBefore Int?
+  whiteRatingDelta  Int?
+  blackRatingDelta  Int?
+  isBotGame       Boolean          @default(false)
+  botDifficulty   String?          @db.VarChar(20)
+  startedAt       DateTime?
+  endedAt         DateTime?
+  createdAt       DateTime         @default(now())
+
+  white     User?         @relation("WhitePlayer", fields: [whiteId], references: [id])
+  black     User?         @relation("BlackPlayer", fields: [blackId], references: [id])
+  moves     GameMove[]
+  analysis  GameAnalysis?
+
+  @@index([whiteId])
+  @@index([blackId])
+  @@index([status])
+  @@map("games")
+}
+
+model GameMove {
+  id          String   @id @default(uuid())
+  gameId      String
+  moveNumber  Int
+  color       Color
+  san         String   @db.VarChar(10)
+  uci         String   @db.VarChar(5)
+  fenAfter    String
+  timeLeftMs  Int
+  createdAt   DateTime @default(now())
+
+  game Game @relation(fields: [gameId], references: [id], onDelete: Cascade)
+
+  @@index([gameId])
+  @@map("game_moves")
+}
+
+model GameAnalysis {
+  id            String         @id @default(uuid())
+  gameId        String         @unique
+  status        AnalysisStatus @default(pending)
+  engineVersion String?        @db.VarChar(20)
+  depth         Int?
+  createdAt     DateTime       @default(now())
+  completedAt   DateTime?
+
+  game          Game           @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  moveAnalyses  MoveAnalysis[]
+
+  @@map("game_analyses")
+}
+
+model MoveAnalysis {
+  id               String             @id @default(uuid())
+  analysisId       String
+  moveNumber       Int
+  color            Color
+  evalCentipawns   Int?
+  mateIn           Int?
+  bestMoveUci      String             @db.VarChar(5)
+  classification   MoveClassification
+  createdAt        DateTime           @default(now())
+
+  analysis GameAnalysis @relation(fields: [analysisId], references: [id], onDelete: Cascade)
+
+  @@index([analysisId])
+  @@map("move_analyses")
+}
+
+model Friend {
+  id           String       @id @default(uuid())
+  requesterId  String
+  addresseeId  String
+  status       FriendStatus @default(pending)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  requester User @relation("Requester", fields: [requesterId], references: [id], onDelete: Cascade)
+  addressee User @relation("Addressee", fields: [addresseeId], references: [id], onDelete: Cascade)
+
+  @@unique([requesterId, addresseeId])
+  @@index([requesterId])
+  @@index([addresseeId])
+  @@map("friends")
+}
+
+model Invitation {
+  id              String           @id @default(uuid())
+  senderId        String
+  receiverId      String?
+  token           String           @unique @db.VarChar(64)
+  timeControl     TimeControl
+  initialTimeMs   Int
+  incrementMs     Int              @default(0)
+  colorPreference ColorPreference  @default(random)
+  status          InvitationStatus @default(pending)
+  expiresAt       DateTime
+  createdAt       DateTime         @default(now())
+
+  sender   User  @relation("InvitationSender", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver User? @relation("InvitationReceiver", fields: [receiverId], references: [id])
+
+  @@index([receiverId])
+  @@index([token])
+  @@map("invitations")
+}
+
+model Notification {
+  id        String           @id @default(uuid())
+  userId    String
+  type      NotificationType
+  payload   Json             @default("{}")
+  read      Boolean          @default(false)
+  createdAt DateTime         @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([userId, read])
+  @@map("notifications")
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  userId    String
+  tokenHash String   @db.VarChar(255)
+  expiresAt DateTime
+  revoked   Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("refresh_tokens")
+}
