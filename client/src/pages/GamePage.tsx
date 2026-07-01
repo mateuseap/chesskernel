@@ -1,4 +1,4 @@
-import { useEffect, useCallback, useState } from 'react';
+import { useEffect, useCallback, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { ChessBoard } from '@/components/chess/ChessBoard';
@@ -8,6 +8,7 @@ import { useAuthStore } from '@/stores/auth.store';
 import { getSocket } from '@/services/socket';
 import { api } from '@/services/api';
 import { cn } from '@/lib/utils';
+import type { Arrow } from 'react-chessboard/dist/chessboard/types';
 import type { Square, GameOverPayload, MoveBroadcastPayload } from '@chesskernel/shared';
 
 type Sq = string;
@@ -19,6 +20,9 @@ export function GamePage() {
   const user = useAuthStore((s) => s.user);
   const [drawOffered, setDrawOffered] = useState<'white' | 'black' | null>(null);
   const [gameOver, setGameOver] = useState<GameOverPayload | null>(null);
+  const [arrows, setArrows] = useState<Arrow[]>([]);
+  const [illegalFlash, setIllegalFlash] = useState(false);
+  const flashTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const {
     gameState, chess, selectedSquare, myColor, isMyTurn,
@@ -87,15 +91,21 @@ export function GamePage() {
     return chess.moves({ square: sq as Square, verbose: true }).map((m) => m.to as string);
   }, [chess, isMyTurn]);
 
+  const triggerIllegalFlash = useCallback(() => {
+    if (flashTimeout.current) clearTimeout(flashTimeout.current);
+    setIllegalFlash(true);
+    flashTimeout.current = setTimeout(() => setIllegalFlash(false), 400);
+  }, []);
+
   const sendMove = useCallback((from: Sq, to: Sq, promotion?: string) => {
     if (!gameId) return;
     const prevFen = chess.fen();
     const ok = applyMoveOptimistic(from as Square, to as Square, promotion);
-    if (!ok) return;
+    if (!ok) { triggerIllegalFlash(); return; }
     const socket = getSocket();
     socket.emit('game:move', { gameId, from, to, promotion });
     socket.once('game:move:rejected', () => revertOptimistic(prevFen));
-  }, [gameId, chess, applyMoveOptimistic, revertOptimistic]);
+  }, [gameId, chess, applyMoveOptimistic, revertOptimistic, triggerIllegalFlash]);
 
   const handleSquareClick = useCallback((sq: Sq) => {
     if (!isMyTurn || !gameId) return;
@@ -117,15 +127,16 @@ export function GamePage() {
     selectSquare(null);
   }, [selectedSquare, chess, isMyTurn, myColor, gameId, sendMove]);
 
-  const handleDrop = useCallback((from: Sq, to: Sq) => {
-    if (!isMyTurn || !gameId) return;
+  const handleDrop = useCallback((from: Sq, to: Sq): boolean => {
+    if (!isMyTurn || !gameId) { triggerIllegalFlash(); return false; }
     const legalMoves = chess.moves({ square: from as Square, verbose: true });
     const target = legalMoves.find((m) => m.to === to);
-    if (!target) return;
+    if (!target) { triggerIllegalFlash(); return false; }
     const needsPromo = target.piece === 'p' && ((myColor === 'white' && to[1] === '8') || (myColor === 'black' && to[1] === '1'));
     sendMove(from, to, needsPromo ? 'q' : undefined);
     selectSquare(null);
-  }, [chess, isMyTurn, myColor, gameId, sendMove]);
+    return true;
+  }, [chess, isMyTurn, myColor, gameId, sendMove, triggerIllegalFlash]);
 
   const handleResign = () => { if (gameId) getSocket().emit('game:resign', { gameId }); };
   const handleDrawOffer = () => { if (gameId) getSocket().emit('game:draw:offer', { gameId }); };
@@ -177,6 +188,9 @@ export function GamePage() {
           onSquareClick={handleSquareClick}
           onDrop={handleDrop}
           disabled={!isActive || !isMyTurn}
+          arrows={arrows}
+          onArrowsChange={setArrows}
+          illegalFlash={illegalFlash}
         />
 
         {/* Player info */}
@@ -248,7 +262,7 @@ export function GamePage() {
                 {t('game.analyzeGame')}
               </button>
               <button onClick={() => navigate('/play')} className="flex-1 bg-primary text-primary-foreground text-sm px-3 py-1.5 rounded-md hover:bg-primary/90 transition-colors">
-                New Game
+                {t('game.newGame')}
               </button>
             </div>
           </div>

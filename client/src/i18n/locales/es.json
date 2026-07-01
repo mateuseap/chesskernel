@@ -12,15 +12,15 @@
     "getStarted": "Empezar",
     "playNow": "Jugar Ahora",
     "features": {
-      "realtime": { "title": "Tiempo Real", "desc": "Juega partidas en vivo contra oponentes de todo el mundo" },
-      "bots": { "title": "vs Bot", "desc": "Desafía a Stockfish en cualquier nivel de dificultad" },
+      "realtime": { "title": "Tiempo Real", "desc": "Juega en vivo contra oponentes de todo el mundo" },
+      "bots": { "title": "vs Bot", "desc": "Desafía a Stockfish en cualquier nivel" },
       "analysis": { "title": "Análisis", "desc": "Análisis gratuito post-partida con Stockfish" }
     }
   },
   "play": {
     "title": "Jugar Ajedrez",
-    "online": "Jugar Online",
-    "vsBot": "Jugar vs Bot",
+    "online": "Online",
+    "vsBot": "vs Computadora",
     "timeControl": "Control de Tiempo",
     "difficulty": "Dificultad del Bot",
     "playAs": "Jugar como",
@@ -28,13 +28,14 @@
     "black": "Negras",
     "random": "Aleatorio",
     "findGame": "Buscar Partida",
-    "searching": "Buscando oponente",
+    "searching": "Buscando",
     "cancel": "Cancelar",
     "playVsBot": "Jugar vs Bot",
     "bullet": "Bullet",
     "blitz": "Blitz",
     "rapid": "Rápido",
     "classical": "Clásico",
+    "chooseCategory": "Elige un control de tiempo",
     "difficulties": {
       "beginner": "Principiante",
       "easy": "Fácil",
@@ -47,7 +48,7 @@
   "game": {
     "offerDraw": "Ofrecer Tablas",
     "resign": "Rendirse",
-    "analyzeGame": "Analizar Partida",
+    "analyzeGame": "Analizar",
     "you": "Tú",
     "moves": "Movimientos",
     "draw": "Tablas",
@@ -57,9 +58,10 @@
     "drawOffered": "Tablas ofrecidas",
     "accept": "Aceptar",
     "decline": "Rechazar",
+    "newGame": "Nueva Partida",
     "terminations": {
       "checkmate": "Jaque mate",
-      "timeout": "Tiempo agotado",
+      "timeout": "En tiempo",
       "resignation": "Abandono",
       "draw_agreement": "Tablas por acuerdo",
       "stalemate": "Ahogado",
@@ -87,11 +89,35 @@
   },
   "leaderboard": {
     "title": "Clasificación",
-    "rank": "Posición",
+    "rank": "#",
     "player": "Jugador",
     "rating": "Rating",
     "games": "Partidas",
-    "winRate": "Tasa de Victoria"
+    "winRate": "Victorias %",
+    "loading": "Cargando…"
+  },
+  "profile": {
+    "recentGames": "Partidas Recientes",
+    "games": "partidas",
+    "vs": "vs",
+    "loading": "Cargando perfil…",
+    "notFound": "Jugador no encontrado",
+    "ratings": "Ratings"
+  },
+  "analysis": {
+    "title": "Análisis",
+    "requestAnalysis": "Analizar Partida",
+    "analyzing": "Analizando con Stockfish…",
+    "failed": "Análisis fallido",
+    "failedHint": "Es posible que Stockfish no esté instalado en el servidor.",
+    "evaluation": "Evaluación",
+    "bestMove": "Mejor movimiento",
+    "complete": "Completo",
+    "start": "Inicio",
+    "arrowKeys": "Usa ← → para navegar",
+    "noMoves": "Sin movimientos registrados",
+    "selectMove": "Navega por los movimientos para ver la evaluación",
+    "moves": "Movimientos"
   },
   "theme": {
     "light": "Claro",

@@ -3,7 +3,15 @@ import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { api } from '@/services/api';
+import { cn } from '@/lib/utils';
 import type { TimeControl } from '@chesskernel/shared';
+
+const TC_ICONS: Record<TimeControl, string> = {
+  bullet: '⚡',
+  blitz: '🔥',
+  rapid: '⏱',
+  classical: '🏛',
+};
 
 export function LeaderboardPage() {
   const [timeControl, setTimeControl] = useState<TimeControl>('blitz');
@@ -16,60 +24,75 @@ export function LeaderboardPage() {
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
-      <h1 className="text-3xl font-bold">{t('nav.leaderboard')}</h1>
+      <h1 className="text-3xl font-bold tracking-tight">{t('leaderboard.title')}</h1>
 
-      <div className="flex gap-2">
+      <div className="flex gap-1 border-b border-border">
         {(['bullet', 'blitz', 'rapid', 'classical'] as TimeControl[]).map((tc) => (
           <button
             key={tc}
             onClick={() => setTimeControl(tc)}
-            className={`px-4 py-2 rounded-md text-sm font-medium capitalize border transition-colors ${
+            className={cn(
+              'flex items-center gap-1.5 px-4 py-2.5 text-sm font-semibold border-b-2 transition-colors -mb-px capitalize',
               timeControl === tc
-                ? 'bg-primary text-primary-foreground border-primary'
-                : 'hover:bg-muted border-border'
-            }`}
+                ? 'border-primary text-primary'
+                : 'border-transparent text-muted-foreground hover:text-foreground hover:border-muted-foreground',
+            )}
           >
-            {tc}
+            <span>{TC_ICONS[tc]}</span>
+            <span>{t(`play.${tc}` as any)}</span>
           </button>
         ))}
       </div>
 
-      <div className="bg-card border rounded-lg overflow-hidden">
+      <div className="bg-card border border-border rounded-xl overflow-hidden">
         <table className="w-full">
-          <thead className="bg-muted/50">
+          <thead className="bg-muted/40">
             <tr>
-              <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">#</th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Player</th>
-              <th className="px-4 py-3 text-right text-sm font-medium text-muted-foreground">Rating</th>
-              <th className="px-4 py-3 text-right text-sm font-medium text-muted-foreground">Games</th>
+              <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider w-10">{t('leaderboard.rank')}</th>
+              <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">{t('leaderboard.player')}</th>
+              <th className="px-4 py-3 text-right text-xs font-semibold text-muted-foreground uppercase tracking-wider">{t('leaderboard.rating')}</th>
+              <th className="px-4 py-3 text-right text-xs font-semibold text-muted-foreground uppercase tracking-wider hidden sm:table-cell">{t('leaderboard.games')}</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody className="divide-y divide-border">
             {isLoading ? (
               <tr>
-                <td colSpan={4} className="px-4 py-8 text-center text-muted-foreground">
-                  Loading…
+                <td colSpan={4} className="px-4 py-10 text-center text-sm text-muted-foreground">
+                  {t('leaderboard.loading')}
                 </td>
               </tr>
-            ) : (
-              data?.entries?.map((entry: any) => (
-                <tr key={entry.user.id} className="border-t hover:bg-muted/30 transition-colors">
-                  <td className="px-4 py-3 text-sm text-muted-foreground font-mono">{entry.rank}</td>
+            ) : data?.entries?.length > 0 ? (
+              data.entries.map((entry: any, i: number) => (
+                <tr key={entry.user.id} className="hover:bg-muted/30 transition-colors">
+                  <td className="px-4 py-3 text-sm font-mono text-muted-foreground font-bold">
+                    {i + 1 <= 3 ? ['🥇','🥈','🥉'][i] : `${i + 1}`}
+                  </td>
                   <td className="px-4 py-3">
                     <Link
                       to={`/user/${entry.user.username}`}
-                      className="flex items-center gap-2 hover:text-primary transition-colors"
+                      className="flex items-center gap-2.5 hover:text-primary transition-colors group"
                     >
-                      <span className="font-medium">{entry.user.username}</span>
-                      {entry.user.country && (
-                        <span className="text-xs text-muted-foreground">{entry.user.country}</span>
-                      )}
+                      <div className="w-8 h-8 rounded-full bg-primary/15 text-primary flex items-center justify-center text-sm font-bold shrink-0">
+                        {entry.user.username[0].toUpperCase()}
+                      </div>
+                      <div>
+                        <span className="font-semibold text-sm group-hover:text-primary">{entry.user.username}</span>
+                        {entry.user.country && (
+                          <span className="text-xs text-muted-foreground ml-1.5">{entry.user.country}</span>
+                        )}
+                      </div>
                     </Link>
                   </td>
-                  <td className="px-4 py-3 text-right font-mono font-semibold">{entry.rating}</td>
-                  <td className="px-4 py-3 text-right text-sm text-muted-foreground">{entry.gamesPlayed}</td>
+                  <td className="px-4 py-3 text-right font-mono font-bold text-sm">{entry.rating}</td>
+                  <td className="px-4 py-3 text-right text-sm text-muted-foreground hidden sm:table-cell">{entry.gamesPlayed}</td>
                 </tr>
               ))
+            ) : (
+              <tr>
+                <td colSpan={4} className="px-4 py-10 text-center text-sm text-muted-foreground">
+                  No players yet
+                </td>
+              </tr>
             )}
           </tbody>
         </table>

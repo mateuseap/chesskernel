@@ -2,9 +2,9 @@
   "nav": {
     "play": "Play",
     "leaderboard": "Leaderboard",
-    "login": "Login",
+    "login": "Log In",
     "signUp": "Sign Up",
-    "logout": "Logout"
+    "logout": "Log Out"
   },
   "home": {
     "title": "ChessKernel",
@@ -19,8 +19,8 @@
   },
   "play": {
     "title": "Play Chess",
-    "online": "Play Online",
-    "vsBot": "Play vs Bot",
+    "online": "Online",
+    "vsBot": "vs Computer",
     "timeControl": "Time Control",
     "difficulty": "Bot Difficulty",
     "playAs": "Play as",
@@ -28,13 +28,14 @@
     "black": "Black",
     "random": "Random",
     "findGame": "Find Game",
-    "searching": "Searching for opponent",
+    "searching": "Searching",
     "cancel": "Cancel",
     "playVsBot": "Play vs Bot",
     "bullet": "Bullet",
     "blitz": "Blitz",
     "rapid": "Rapid",
     "classical": "Classical",
+    "chooseCategory": "Choose a time control",
     "difficulties": {
       "beginner": "Beginner",
       "easy": "Easy",
@@ -47,7 +48,7 @@
   "game": {
     "offerDraw": "Offer Draw",
     "resign": "Resign",
-    "analyzeGame": "Analyze Game",
+    "analyzeGame": "Analyze",
     "you": "You",
     "moves": "Moves",
     "draw": "Draw",
@@ -57,41 +58,66 @@
     "drawOffered": "Draw offered",
     "accept": "Accept",
     "decline": "Decline",
+    "newGame": "New Game",
     "terminations": {
       "checkmate": "Checkmate",
-      "timeout": "Timeout",
+      "timeout": "On time",
       "resignation": "Resignation",
       "draw_agreement": "Draw by agreement",
       "stalemate": "Stalemate",
       "insufficient_material": "Insufficient material",
       "threefold_repetition": "Threefold repetition",
-      "fifty_move_rule": "Fifty-move rule",
+      "fifty_move_rule": "50-move rule",
       "abandoned": "Abandoned"
     }
   },
   "auth": {
-    "login": "Login",
+    "login": "Log In",
     "register": "Create Account",
     "email": "Email",
     "password": "Password",
     "username": "Username",
     "welcomeBack": "Welcome back",
-    "loginSubtitle": "Login to your ChessKernel account",
+    "loginSubtitle": "Sign in to your ChessKernel account",
     "registerSubtitle": "Create your free ChessKernel account",
     "noAccount": "Don't have an account?",
     "hasAccount": "Already have an account?",
     "signUp": "Sign up",
-    "loginLink": "Login",
-    "loggingIn": "Logging in…",
+    "loginLink": "Log in",
+    "loggingIn": "Signing in…",
     "creating": "Creating account…"
   },
   "leaderboard": {
     "title": "Leaderboard",
-    "rank": "Rank",
+    "rank": "#",
     "player": "Player",
     "rating": "Rating",
     "games": "Games",
-    "winRate": "Win Rate"
+    "winRate": "Win %",
+    "loading": "Loading…"
+  },
+  "profile": {
+    "recentGames": "Recent Games",
+    "games": "games",
+    "vs": "vs",
+    "loading": "Loading profile…",
+    "notFound": "Player not found",
+    "ratings": "Ratings"
+  },
+  "analysis": {
+    "title": "Analysis",
+    "requestAnalysis": "Analyze Game",
+    "analyzing": "Analyzing with Stockfish…",
+    "failed": "Analysis failed",
+    "failedHint": "Stockfish may not be installed on the server.",
+    "evaluation": "Evaluation",
+    "bestMove": "Best move",
+    "complete": "Complete",
+    "start": "Start",
+    "arrowKeys": "Use ← → to navigate",
+    "noMoves": "No moves recorded",
+    "selectMove": "Navigate through moves to see evaluation",
+    "moves": "Moves"
   },
   "theme": {
     "light": "Light",

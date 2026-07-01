@@ -1,39 +1,61 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, BarChart2, Loader2 } from 'lucide-react';
+import type { Arrow } from 'react-chessboard/dist/chessboard/types';
 import { api } from '@/services/api';
 import { ChessBoard } from '@/components/chess/ChessBoard';
 import { cn } from '@/lib/utils';
 
 const STARTING_FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
 
-const CLASSIFICATION_META: Record<string, { color: string; icon: string }> = {
-  best:       { color: 'text-green-500',  icon: '★' },
-  excellent:  { color: 'text-green-400',  icon: '✓' },
-  good:       { color: 'text-blue-400',   icon: '·' },
-  book:       { color: 'text-slate-400',  icon: '📖' },
-  inaccuracy: { color: 'text-yellow-400', icon: '?!' },
-  mistake:    { color: 'text-orange-400', icon: '?' },
-  blunder:    { color: 'text-red-400',    icon: '??' },
+const CLASSIFICATION_META: Record<string, { color: string; icon: string; label: string }> = {
+  best:       { color: 'text-green-500',  icon: '★',   label: 'Best' },
+  excellent:  { color: 'text-green-400',  icon: '✓',   label: 'Excellent' },
+  good:       { color: 'text-blue-400',   icon: '·',   label: 'Good' },
+  book:       { color: 'text-slate-400',  icon: '📖',  label: 'Book' },
+  inaccuracy: { color: 'text-yellow-400', icon: '?!',  label: 'Inaccuracy' },
+  mistake:    { color: 'text-orange-400', icon: '?',   label: 'Mistake' },
+  blunder:    { color: 'text-red-400',    icon: '??',  label: 'Blunder' },
 };
 
-function EvalBar({ cp, mate }: { cp: number | null; mate: number | null }) {
-  const score = mate != null ? (mate > 0 ? 1000 : -1000) : (cp ?? 0);
+function EvalBar({ cp, mate, height }: { cp: number | null; mate: number | null; height: number }) {
+  const score = mate != null ? (mate > 0 ? 1200 : -1200) : (cp ?? 0);
   const clamped = Math.max(-600, Math.min(600, score));
   const whitePct = 50 + (clamped / 600) * 50;
 
   const label = mate != null
     ? (mate > 0 ? `+M${Math.abs(mate)}` : `-M${Math.abs(mate)}`)
-    : cp != null ? (cp >= 0 ? `+${(cp / 100).toFixed(1)}` : `${(cp / 100).toFixed(1)}`) : '0.0';
+    : cp != null
+      ? (cp >= 0 ? `+${(cp / 100).toFixed(1)}` : `${(cp / 100).toFixed(1)}`)
+      : '0.0';
 
   return (
-    <div className="relative w-3 rounded overflow-hidden bg-gray-800 h-full" title={label}>
+    <div
+      className="relative w-3 rounded overflow-hidden border border-border"
+      style={{ height, backgroundColor: '#1c1c1c' }}
+      title={label}
+    >
+      {/* White side fills from bottom */}
       <div
-        className="absolute bottom-0 left-0 right-0 bg-gray-100 transition-all duration-300"
-        style={{ height: `${whitePct}%` }}
+        className="absolute bottom-0 left-0 right-0 transition-all duration-400"
+        style={{ height: `${whitePct}%`, backgroundColor: '#f0f0f0' }}
       />
+      {/* Score label at the dividing line */}
+      <div
+        className="absolute left-0 right-0 flex justify-center pointer-events-none"
+        style={{ bottom: `${whitePct}%`, transform: 'translateY(50%)' }}
+      >
+        <span className="text-[8px] font-bold leading-none px-0.5 rounded"
+          style={{
+            color: whitePct > 50 ? '#222' : '#eee',
+            backgroundColor: whitePct > 50 ? 'rgba(240,240,240,0.85)' : 'rgba(28,28,28,0.85)',
+          }}
+        >
+          {label}
+        </span>
+      </div>
     </div>
   );
 }
@@ -61,7 +83,9 @@ function MoveButton({ san, cls, active, onClick }: { san: string; cls?: string; 
         !active && meta?.color,
       )}
     >
-      {san}{meta ? <sup className="ml-0.5 text-[9px]">{meta.icon}</sup> : null}
+      {san}{meta && !['best', 'excellent', 'good', 'book'].includes(cls ?? '')
+        ? <sup className="ml-0.5 text-[9px] opacity-80">{meta.icon}</sup>
+        : null}
     </button>
   );
 }
@@ -69,8 +93,11 @@ function MoveButton({ san, cls, active, onClick }: { san: string; cls?: string; 
 export function AnalysisPage() {
   const { gameId } = useParams<{ gameId: string }>();
   const navigate = useNavigate();
-  useTranslation(); // ensure re-render on language change
+  const { t } = useTranslation();
   const [idx, setIdx] = useState<number>(-1);
+  const [arrows, setArrows] = useState<Arrow[]>([]);
+  const boardRef = useRef<HTMLDivElement>(null);
+  const [boardHeight, setBoardHeight] = useState(400);
 
   const { data: game, isLoading: gameLoading } = useQuery({
     queryKey: ['game', gameId],
@@ -97,6 +124,17 @@ export function AnalysisPage() {
     },
   });
 
+  // Track board height for eval bar
+  useEffect(() => {
+    if (!boardRef.current) return;
+    const obs = new ResizeObserver((entries) => {
+      const h = entries[0]?.contentRect.height;
+      if (h && h > 0) setBoardHeight(h);
+    });
+    obs.observe(boardRef.current);
+    return () => obs.disconnect();
+  }, []);
+
   const moves = game?.moves ?? [];
   const totalMoves = moves.length;
 
@@ -111,12 +149,23 @@ export function AnalysisPage() {
 
   const evalCp: number | null = currentAnalysis?.evalCentipawns ?? null;
   const mateIn: number | null = currentAnalysis?.mateIn ?? null;
+  const classification: string | undefined = currentAnalysis?.classification;
 
   const evalDisplay = mateIn != null
     ? `${mateIn > 0 ? '+' : '-'}M${Math.abs(mateIn)}`
     : evalCp != null
       ? (evalCp >= 0 ? `+${(evalCp / 100).toFixed(2)}` : `${(evalCp / 100).toFixed(2)}`)
       : null;
+
+  // Best move arrow: show only when the played move wasn't best/excellent
+  const bestMoveUci: string | null = currentAnalysis?.bestMoveUci ?? null;
+  const showBestArrow = bestMoveUci &&
+    classification &&
+    !['best', 'excellent'].includes(classification);
+
+  const bestMoveArrow: [string, string] | null = showBestArrow && bestMoveUci
+    ? [bestMoveUci.substring(0, 2), bestMoveUci.substring(2, 4)]
+    : null;
 
   const go = useCallback((delta: number) => {
     setIdx((i) => Math.max(-1, Math.min(totalMoves - 1, i + delta)));
@@ -148,7 +197,7 @@ export function AnalysisPage() {
   if (!game) {
     return (
       <div className="flex flex-col items-center justify-center h-[60vh] gap-3 text-muted-foreground">
-        <p className="text-lg font-semibold">Game not found</p>
+        <p className="text-lg font-semibold">{t('profile.notFound')}</p>
         <button onClick={() => navigate('/play')} className="text-primary hover:underline text-sm">
           Back to Play
         </button>
@@ -186,7 +235,7 @@ export function AnalysisPage() {
         <div>
           <h1 className="font-bold text-lg leading-tight">{white} vs {black}</h1>
           <p className="text-xs text-muted-foreground">
-            {game.result ?? '—'} · {game.timeControl ?? 'Analysis'}
+            {game.result ?? '—'} · {game.timeControl ?? t('analysis.title')}
           </p>
         </div>
       </div>
@@ -194,12 +243,12 @@ export function AnalysisPage() {
       <div className="flex flex-col lg:flex-row gap-4">
         {/* Board column */}
         <div className="flex gap-2 flex-1 min-w-0">
-          {/* Eval bar */}
-          <div className="w-3 self-stretch min-h-[300px]">
-            <EvalBar cp={evalCp} mate={mateIn} />
+          {/* Eval bar — matches board height via ResizeObserver */}
+          <div className="shrink-0 self-start">
+            <EvalBar cp={evalCp} mate={mateIn} height={boardHeight} />
           </div>
 
-          <div className="flex-1 min-w-0">
+          <div className="flex-1 min-w-0" ref={boardRef}>
             <ChessBoard
               fen={currentFen}
               orientation="white"
@@ -209,6 +258,10 @@ export function AnalysisPage() {
               isCheck={false}
               onSquareClick={() => {}}
               disabled
+              moveClassification={classification}
+              bestMoveArrow={bestMoveArrow}
+              arrows={arrows}
+              onArrowsChange={setArrows}
             />
 
             {/* Navigation controls */}
@@ -220,10 +273,10 @@ export function AnalysisPage() {
                 <ChevronLeft size={18} />
               </NavBtn>
 
-              <div className="w-28 text-center text-sm text-muted-foreground tabular-nums">
+              <div className="w-28 text-center text-sm tabular-nums">
                 {idx >= 0
-                  ? <span className="font-medium text-foreground">{moves[idx]?.san}</span>
-                  : <span>Start</span>}
+                  ? <span className="font-semibold text-foreground">{moves[idx]?.san}</span>
+                  : <span className="text-muted-foreground">{t('analysis.start')}</span>}
               </div>
 
               <NavBtn onClick={() => go(1)} title="Next (→)">
@@ -235,7 +288,7 @@ export function AnalysisPage() {
             </div>
 
             <p className="text-center text-[11px] text-muted-foreground mt-1.5 select-none">
-              Use ← → arrow keys to navigate
+              {t('analysis.arrowKeys')}
             </p>
           </div>
         </div>
@@ -246,9 +299,9 @@ export function AnalysisPage() {
           <div className="bg-card border border-border rounded-xl overflow-hidden">
             <div className="flex items-center gap-2 px-4 py-3 border-b border-border bg-muted/30">
               <BarChart2 size={15} className="text-primary" />
-              <span className="font-semibold text-sm">Analysis</span>
+              <span className="font-semibold text-sm">{t('analysis.title')}</span>
               {analysis?.status === 'completed' && (
-                <span className="ml-auto text-xs text-green-500 font-medium">Complete</span>
+                <span className="ml-auto text-xs text-green-500 font-medium">{t('analysis.complete')}</span>
               )}
             </div>
 
@@ -256,35 +309,29 @@ export function AnalysisPage() {
               {!analysis && !requestMutation.isPending && !requestMutation.isSuccess && (
                 <div className="space-y-3">
                   <p className="text-sm text-muted-foreground">
-                    Get move-by-move evaluation powered by Stockfish.
+                    Get move-by-move Stockfish evaluation.
                   </p>
                   <button
                     onClick={() => requestMutation.mutate()}
                     className="w-full bg-primary text-primary-foreground py-2 px-4 rounded-lg text-sm font-semibold hover:bg-primary/90 transition-colors"
                   >
-                    Analyze Game
+                    {t('analysis.requestAnalysis')}
                   </button>
                 </div>
               )}
 
-              {(requestMutation.isPending || requestMutation.isSuccess) && analysis?.status !== 'completed' && analysis?.status !== 'failed' && (
+              {(requestMutation.isPending || (requestMutation.isSuccess && analysis?.status !== 'completed' && analysis?.status !== 'failed')) && (
                 <div className="flex items-center gap-2 text-sm text-muted-foreground py-1">
                   <Loader2 size={14} className="animate-spin text-primary shrink-0" />
-                  <span>
-                    {requestMutation.isPending ? 'Starting analysis…' : 'Analyzing with Stockfish…'}
-                  </span>
+                  <span>{requestMutation.isPending ? 'Starting…' : t('analysis.analyzing')}</span>
                 </div>
               )}
 
               {analysis?.status === 'failed' && (
                 <div className="space-y-2 text-sm">
-                  <p className="text-destructive font-medium">Analysis failed</p>
-                  <p className="text-xs text-muted-foreground leading-relaxed">
-                    Stockfish is not installed on the server. Ask the server admin to run:
-                  </p>
-                  <code className="block bg-muted rounded px-2 py-1.5 text-xs text-foreground">
-                    sudo apt-get install stockfish
-                  </code>
+                  <p className="text-destructive font-medium">{t('analysis.failed')}</p>
+                  <p className="text-xs text-muted-foreground leading-relaxed">{t('analysis.failedHint')}</p>
+                  <code className="block bg-muted rounded px-2 py-1.5 text-xs">sudo apt-get install stockfish</code>
                 </div>
               )}
 
@@ -292,40 +339,38 @@ export function AnalysisPage() {
                 <div className="space-y-2">
                   {currentAnalysis ? (
                     <>
+                      {classification && CLASSIFICATION_META[classification] && (
+                        <div className={cn(
+                          'flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold bg-muted/60',
+                          CLASSIFICATION_META[classification].color,
+                        )}>
+                          <span className="text-base">{CLASSIFICATION_META[classification].icon}</span>
+                          <span>{CLASSIFICATION_META[classification].label}</span>
+                        </div>
+                      )}
+
                       {evalDisplay && (
                         <div className="flex items-center justify-between text-sm">
-                          <span className="text-muted-foreground">Evaluation</span>
+                          <span className="text-muted-foreground">{t('analysis.evaluation')}</span>
                           <span className={cn(
                             'font-bold tabular-nums',
-                            (evalCp ?? 0) > 0 ? 'text-green-400' : (evalCp ?? 0) < 0 ? 'text-red-400' : 'text-foreground',
+                            (evalCp ?? 0) > 30 ? 'text-green-400' : (evalCp ?? 0) < -30 ? 'text-red-400' : 'text-foreground',
                           )}>
                             {evalDisplay}
                           </span>
                         </div>
                       )}
 
-                      {currentAnalysis.bestMoveUci && (
+                      {bestMoveUci && (
                         <div className="flex items-center justify-between text-sm">
-                          <span className="text-muted-foreground">Best move</span>
-                          <span className="font-mono font-semibold text-primary">
-                            {currentAnalysis.bestMoveUci}
-                          </span>
-                        </div>
-                      )}
-
-                      {currentAnalysis.classification && (
-                        <div className={cn(
-                          'flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold capitalize bg-muted/60',
-                          CLASSIFICATION_META[currentAnalysis.classification]?.color,
-                        )}>
-                          <span>{CLASSIFICATION_META[currentAnalysis.classification]?.icon}</span>
-                          <span>{currentAnalysis.classification}</span>
+                          <span className="text-muted-foreground">{t('analysis.bestMove')}</span>
+                          <span className="font-mono font-semibold text-primary">{bestMoveUci}</span>
                         </div>
                       )}
                     </>
                   ) : (
                     <p className="text-xs text-muted-foreground py-1">
-                      {idx < 0 ? 'Navigate through moves to see evaluation' : 'No analysis for this move'}
+                      {idx < 0 ? t('analysis.selectMove') : 'No analysis for this move'}
                     </p>
                   )}
                 </div>
@@ -335,14 +380,14 @@ export function AnalysisPage() {
 
           {/* Move list */}
           <div className="bg-card border border-border rounded-xl overflow-hidden">
-            <div className="px-4 py-3 border-b border-border bg-muted/30">
-              <span className="font-semibold text-sm">Moves</span>
-              <span className="ml-2 text-xs text-muted-foreground">{totalMoves} total</span>
+            <div className="px-4 py-3 border-b border-border bg-muted/30 flex items-center gap-2">
+              <span className="font-semibold text-sm">{t('analysis.moves')}</span>
+              <span className="text-xs text-muted-foreground ml-1">{totalMoves}</span>
             </div>
 
             <div className="max-h-72 overflow-y-auto overscroll-contain">
               {pairRows.length === 0 ? (
-                <p className="text-xs text-muted-foreground p-4 text-center">No moves recorded</p>
+                <p className="text-xs text-muted-foreground p-4 text-center">{t('analysis.noMoves')}</p>
               ) : (
                 <div className="py-1 font-mono">
                   {pairRows.map(({ n, w, b }: PairRow) => (

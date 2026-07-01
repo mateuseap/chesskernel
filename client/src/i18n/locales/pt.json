@@ -1,7 +1,7 @@
 {
   "nav": {
     "play": "Jogar",
-    "leaderboard": "Classificação",
+    "leaderboard": "Placar",
     "login": "Entrar",
     "signUp": "Cadastrar",
     "logout": "Sair"
@@ -12,15 +12,15 @@
     "getStarted": "Começar",
     "playNow": "Jogar Agora",
     "features": {
-      "realtime": { "title": "Tempo Real", "desc": "Jogue partidas ao vivo contra oponentes do mundo inteiro" },
-      "bots": { "title": "vs Bot", "desc": "Desafie o Stockfish em qualquer nível de dificuldade" },
+      "realtime": { "title": "Tempo Real", "desc": "Jogue ao vivo contra oponentes do mundo todo" },
+      "bots": { "title": "vs Bot", "desc": "Desafie o Stockfish em qualquer nível" },
       "analysis": { "title": "Análise", "desc": "Análise gratuita pós-partida com Stockfish" }
     }
   },
   "play": {
     "title": "Jogar Xadrez",
-    "online": "Jogar Online",
-    "vsBot": "Jogar vs Bot",
+    "online": "Online",
+    "vsBot": "vs Computador",
     "timeControl": "Controle de Tempo",
     "difficulty": "Dificuldade do Bot",
     "playAs": "Jogar como",
@@ -28,13 +28,14 @@
     "black": "Pretas",
     "random": "Aleatório",
     "findGame": "Encontrar Partida",
-    "searching": "Procurando oponente",
+    "searching": "Procurando",
     "cancel": "Cancelar",
     "playVsBot": "Jogar vs Bot",
     "bullet": "Bullet",
     "blitz": "Blitz",
     "rapid": "Rápido",
     "classical": "Clássico",
+    "chooseCategory": "Escolha um controle de tempo",
     "difficulties": {
       "beginner": "Iniciante",
       "easy": "Fácil",
@@ -47,7 +48,7 @@
   "game": {
     "offerDraw": "Oferecer Empate",
     "resign": "Abandonar",
-    "analyzeGame": "Analisar Partida",
+    "analyzeGame": "Analisar",
     "you": "Você",
     "moves": "Lances",
     "draw": "Empate",
@@ -57,9 +58,10 @@
     "drawOffered": "Empate oferecido",
     "accept": "Aceitar",
     "decline": "Recusar",
+    "newGame": "Nova Partida",
     "terminations": {
       "checkmate": "Xeque-mate",
-      "timeout": "Tempo esgotado",
+      "timeout": "No tempo",
       "resignation": "Abandono",
       "draw_agreement": "Empate por acordo",
       "stalemate": "Afogamento",
@@ -86,12 +88,36 @@
     "creating": "Criando conta…"
   },
   "leaderboard": {
-    "title": "Classificação",
-    "rank": "Posição",
+    "title": "Placar",
+    "rank": "#",
     "player": "Jogador",
     "rating": "Rating",
     "games": "Partidas",
-    "winRate": "Taxa de Vitória"
+    "winRate": "Vitórias %",
+    "loading": "Carregando…"
+  },
+  "profile": {
+    "recentGames": "Partidas Recentes",
+    "games": "partidas",
+    "vs": "vs",
+    "loading": "Carregando perfil…",
+    "notFound": "Jogador não encontrado",
+    "ratings": "Ratings"
+  },
+  "analysis": {
+    "title": "Análise",
+    "requestAnalysis": "Analisar Partida",
+    "analyzing": "Analisando com Stockfish…",
+    "failed": "Análise falhou",
+    "failedHint": "O Stockfish pode não estar instalado no servidor.",
+    "evaluation": "Avaliação",
+    "bestMove": "Melhor lance",
+    "complete": "Completo",
+    "start": "Início",
+    "arrowKeys": "Use ← → para navegar",
+    "noMoves": "Sem lances registrados",
+    "selectMove": "Navegue pelos lances para ver a avaliação",
+    "moves": "Lances"
   },
   "theme": {
     "light": "Claro",
