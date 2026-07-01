@@ -188,12 +188,15 @@ export function GamePage() {
   const self = orientation === 'white' ? gameState.white : gameState.black;
 
   const material = parseMaterial(gameState.fen);
-  // From each player's perspective: positive advantage = they're winning material
   const selfAdvantage     = orientation === 'white' ? material.advantage : -material.advantage;
   const opponentAdvantage = -selfAdvantage;
-  // Each row shows pieces THEY captured from the other side
+  // Each row shows the opponent's pieces THIS player captured
+  // selfCaptures = opponent's pieces white captured (black pieces) if orientation=white
   const selfCaptures     = orientation === 'white' ? material.blackLost : material.whiteLost;
   const opponentCaptures = orientation === 'white' ? material.whiteLost : material.blackLost;
+  // Color of the pieces being shown (captured opponent pieces)
+  const selfCapturedColor     = orientation === 'white' ? 'black'  : 'white';
+  const opponentCapturedColor = orientation === 'white' ? 'white'  : 'black';
 
   const drawIsFromOpponent = drawOffered !== null && drawOffered !== myColor;
 
@@ -207,7 +210,7 @@ export function GamePage() {
             <div className={cn('w-5 h-5 rounded-full border border-border shrink-0', orientation === 'black' ? 'bg-white' : 'bg-gray-900')} />
             <span className="font-semibold text-sm">{opponent?.username ?? 'Stockfish'}</span>
           </div>
-          <MaterialCount captures={opponentCaptures} advantage={opponentAdvantage} />
+          <MaterialCount captures={opponentCaptures} capturedColor={opponentCapturedColor} advantage={opponentAdvantage} />
         </div>
 
         <ChessBoard
@@ -229,7 +232,7 @@ export function GamePage() {
             <div className={cn('w-5 h-5 rounded-full border border-border shrink-0', orientation === 'white' ? 'bg-white' : 'bg-gray-900 dark:bg-gray-100')} />
             <span className="font-semibold text-sm">{self?.username ?? t('game.you')}</span>
           </div>
-          <MaterialCount captures={selfCaptures} advantage={selfAdvantage} />
+          <MaterialCount captures={selfCaptures} capturedColor={selfCapturedColor} advantage={selfAdvantage} />
         </div>
       </div>
 

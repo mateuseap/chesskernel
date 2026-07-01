@@ -78,31 +78,24 @@ function MoveBtn({
 }
 
 function EvalBar({ cp, mate }: { cp: number | null; mate: number | null }) {
-  // Clamp to ±9 pawns — beyond that the game is effectively decided
   const raw = mate != null ? (mate > 0 ? 900 : -900) : (cp ?? 0);
   const clamped = Math.max(-900, Math.min(900, raw));
-
-  // whitePct: fraction of the bar height that belongs to white (0–100, from bottom)
   const whitePct = 50 + (clamped / 900) * 50;
   const whiteWinning = clamped >= 0;
 
   const label = mate != null
     ? `M${Math.abs(mate)}`
-    : cp != null
-      ? `${Math.abs(cp / 100).toFixed(1)}`
-      : '0.0';
+    : `${Math.abs((cp ?? 0) / 100).toFixed(1)}`;
 
-  // Score sits inside the winning side's portion, anchored near the dividing line
-  const labelStyle: React.CSSProperties = whiteWinning
-    ? { bottom: `${whitePct}%`, marginBottom: 3 }
-    : { top: `${100 - whitePct}%`, marginTop: 3 };
+  const labelColor  = whiteWinning ? '#262421' : '#f0ede0';
+  const labelBg     = whiteWinning ? 'rgba(240,237,224,0.15)' : 'rgba(38,36,33,0.15)';
 
   return (
     <div
       className="relative w-full h-full rounded-sm overflow-hidden"
       style={{ backgroundColor: '#262421' }}
     >
-      {/* White (cream) portion — grows from bottom */}
+      {/* White portion — animates from bottom */}
       <div
         className="absolute bottom-0 left-0 right-0"
         style={{
@@ -112,53 +105,27 @@ function EvalBar({ cp, mate }: { cp: number | null; mate: number | null }) {
         }}
       />
 
-      {/* Thin divider line at the boundary */}
-      <div
-        className="absolute left-0 right-0 pointer-events-none"
-        style={{
-          bottom: `${whitePct}%`,
-          height: 1,
-          backgroundColor: 'rgba(128,128,128,0.35)',
-          transition: 'bottom 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
-        }}
-      />
-
-      {/* Score label — hugs the dividing line, inside the winning colour */}
+      {/* Score label — pinned to the far end of the WINNING side for maximum readability */}
       <div
         className="absolute left-0 right-0 flex justify-center pointer-events-none z-10"
-        style={{ transition: 'bottom 0.25s cubic-bezier(0.4,0,0.2,1), top 0.25s cubic-bezier(0.4,0,0.2,1)', ...labelStyle }}
+        style={whiteWinning ? { bottom: 6 } : { top: 6 }}
       >
         <span
           style={{
-            display: 'block',
-            color: whiteWinning ? '#262421' : '#f0ede0',
-            fontSize: 8,
-            fontWeight: 900,
+            color: labelColor,
+            backgroundColor: labelBg,
+            fontSize: 11,
+            fontWeight: 800,
             lineHeight: 1,
             letterSpacing: '-0.02em',
-            padding: '1.5px 2.5px',
+            padding: '2px 3px',
             borderRadius: 2,
+            fontVariantNumeric: 'tabular-nums',
           }}
         >
           {label}
         </span>
       </div>
-
-      {/* Black label at top-end (shows score for the losing side too) */}
-      {!whiteWinning && (
-        <div className="absolute top-1 left-0 right-0 flex justify-center pointer-events-none z-10">
-          <span style={{ color: '#f0ede0', fontSize: 8, fontWeight: 900, lineHeight: 1 }}>
-            {label}
-          </span>
-        </div>
-      )}
-      {whiteWinning && (
-        <div className="absolute bottom-1 left-0 right-0 flex justify-center pointer-events-none z-10">
-          <span style={{ color: '#262421', fontSize: 8, fontWeight: 900, lineHeight: 1 }}>
-            {label}
-          </span>
-        </div>
-      )}
     </div>
   );
 }
