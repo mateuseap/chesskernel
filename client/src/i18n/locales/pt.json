@@ -7,6 +7,7 @@
     "logout": "Sair"
   },
   "home": {
+    "tagline": "Código Aberto · Gratuito Para Sempre",
     "title": "ChessKernel",
     "subtitle": "Plataforma de xadrez gratuita e open-source. Jogue online, desafie bots e analise suas partidas.",
     "getStarted": "Começar",

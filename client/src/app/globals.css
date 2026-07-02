@@ -99,6 +99,22 @@
   100% { opacity: 0; }
 }
 
+/* Feature carousel — infinite horizontal scroll, pauses on hover */
+@keyframes carousel-scroll {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+.carousel-track {
+  animation: carousel-scroll 26s linear infinite;
+}
+.carousel-wrapper:hover .carousel-track {
+  animation-play-state: paused;
+}
+.carousel-wrapper {
+  -webkit-mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+  mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+}
+
 /* Scrollbar */
 ::-webkit-scrollbar { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track { background: transparent; }
