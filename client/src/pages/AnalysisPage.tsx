@@ -102,24 +102,22 @@ function EvalBar({ cp, mate }: { cp: number | null; mate: number | null }) {
         }}
       />
 
-      {/* Score label — solid pill pinned to the far end of the winning side */}
+      {/* Score label — vertical text pinned to the far end of the winning side */}
       <div
-        className="absolute left-0 right-0 flex justify-center pointer-events-none z-10"
-        style={whiteWinning ? { bottom: 4 } : { top: 4 }}
+        className="absolute left-0 right-0 flex justify-center items-center pointer-events-none z-10"
+        style={whiteWinning ? { bottom: 4, top: 'auto' } : { top: 4, bottom: 'auto' }}
       >
         <span
           style={{
-            display: 'block',
-            // Contrast: white wins → dark text on cream bg; black wins → light text on dark bg
             color:           whiteWinning ? '#1a1a18' : '#f0ede0',
-            backgroundColor: whiteWinning ? '#dbd8cc' : '#3a3734',
-            fontSize: 10,
+            fontSize: 11,
             fontWeight: 800,
             lineHeight: 1,
-            letterSpacing: '-0.02em',
-            padding: '2px 4px',
-            borderRadius: 3,
+            letterSpacing: '0.01em',
             fontVariantNumeric: 'tabular-nums',
+            writingMode: 'vertical-lr',
+            // white-winning: text reads bottom-to-top; black-winning: top-to-bottom
+            transform: whiteWinning ? 'rotate(180deg)' : 'none',
             whiteSpace: 'nowrap',
           }}
         >
@@ -281,7 +279,7 @@ export function AnalysisPage() {
             CSS Grid: [10px eval bar] [board 1fr]
             Same grid row → eval bar automatically = board height.
           */}
-          <div style={{ display: 'grid', gridTemplateColumns: '10px 1fr', gap: '8px', alignItems: 'stretch' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '20px 1fr', gap: '8px', alignItems: 'stretch' }}>
             <div className="h-full">
               <EvalBar cp={evalCp} mate={mateIn} />
             </div>
