@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Chessboard } from 'react-chessboard';
 import { useAuthStore } from '@/stores/auth.store';
-import { Zap, Bot, BarChart2, Trophy, Shield, Globe } from 'lucide-react';
+import { Zap, Bot, BarChart2, Trophy, Globe } from 'lucide-react';
 
 const STARTING_FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
 
@@ -11,9 +11,11 @@ const FEATURES = [
   { Icon: Bot,       key: 'bots'      },
   { Icon: BarChart2, key: 'analysis'  },
   { Icon: Trophy,    key: 'ladder'    },
-  { Icon: Shield,    key: 'selfhost'  },
   { Icon: Globe,     key: 'multilang' },
-] as const;
+];
+
+// Duplicate for seamless infinite loop
+const CAROUSEL = [...FEATURES, ...FEATURES];
 
 export function HomePage() {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
@@ -27,7 +29,7 @@ export function HomePage() {
           {/* Text side */}
           <div className="flex-1 text-left max-w-lg">
             <span className="inline-block text-xs font-bold uppercase tracking-[0.18em] text-primary mb-5">
-              Open Source · Self-Hosted
+              {t('home.tagline')}
             </span>
             <h1 className="text-5xl sm:text-6xl font-black tracking-tight leading-[1.06] text-foreground mb-5">
               {t('home.title')}
@@ -66,10 +68,7 @@ export function HomePage() {
           <div className="shrink-0 relative" style={{ pointerEvents: 'none', userSelect: 'none', width: 300 }}>
             <div
               className="absolute rounded-3xl opacity-20 blur-3xl"
-              style={{
-                inset: -24,
-                backgroundColor: 'hsl(var(--primary))',
-              }}
+              style={{ inset: -24, backgroundColor: 'hsl(var(--primary))' }}
             />
             <Chessboard
               position={STARTING_FEN}
@@ -87,24 +86,29 @@ export function HomePage() {
         </div>
       </section>
 
-      {/* Features */}
-      <section className="py-20 px-4 border-t border-border">
-        <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-black tracking-tight mb-3">{t('home.featuresTitle')}</h2>
-            <p className="text-muted-foreground max-w-sm mx-auto leading-relaxed">{t('home.featuresSubtitle')}</p>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {FEATURES.map(({ Icon, key }) => (
+      {/* Features — infinite-scroll carousel, pauses on hover */}
+      <section className="py-20 border-t border-border">
+        <div className="px-4 max-w-5xl mx-auto text-center mb-12">
+          <h2 className="text-3xl font-black tracking-tight mb-3">{t('home.featuresTitle')}</h2>
+          <p className="text-muted-foreground max-w-sm mx-auto leading-relaxed">{t('home.featuresSubtitle')}</p>
+        </div>
+
+        <div className="carousel-wrapper overflow-hidden select-none">
+          <div className="carousel-track flex gap-5 w-max px-5">
+            {CAROUSEL.map(({ Icon, key }, i) => (
               <div
-                key={key}
-                className="bg-card border border-border rounded-xl p-5 space-y-3 hover:border-primary/40 transition-colors"
+                key={i}
+                className="flex-none w-[272px] bg-card border border-border rounded-2xl p-6 space-y-4 relative overflow-hidden hover:border-primary/40 hover:shadow-md transition-all duration-300"
               >
-                <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
-                  <Icon size={17} className="text-primary" />
+                {/* Accent top line */}
+                <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/55 to-transparent" />
+                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center ring-1 ring-primary/20">
+                  <Icon size={18} className="text-primary" />
                 </div>
-                <h3 className="font-semibold text-sm">{t(`home.features.${key}.title` as any)}</h3>
-                <p className="text-xs text-muted-foreground leading-relaxed">{t(`home.features.${key}.desc` as any)}</p>
+                <div>
+                  <h3 className="font-bold text-sm mb-1.5">{t(`home.features.${key}.title` as any)}</h3>
+                  <p className="text-xs text-muted-foreground leading-relaxed">{t(`home.features.${key}.desc` as any)}</p>
+                </div>
               </div>
             ))}
           </div>

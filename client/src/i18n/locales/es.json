@@ -7,6 +7,7 @@
     "logout": "Cerrar sesión"
   },
   "home": {
+    "tagline": "Código Abierto · Gratuito Para Siempre",
     "title": "ChessKernel",
     "subtitle": "Plataforma de ajedrez gratuita y open-source. Juega online, desafía bots y analiza tus partidas.",
     "getStarted": "Empezar",
@@ -18,7 +19,6 @@
       "bots":      { "title": "vs Stockfish",        "desc": "Desafía al mejor motor de ajedrez en cualquier nivel." },
       "analysis":  { "title": "Análisis de Jugadas", "desc": "Revisión automática con clasificación de jugadas." },
       "ladder":    { "title": "Clasificación",       "desc": "Ratings separados para bullet, blitz, rapid y clásico." },
-      "selfhost":  { "title": "Auto-alojado",        "desc": "Código abierto y desplegable en tu propia infraestructura." },
       "multilang": { "title": "Multilingüe",         "desc": "Soporte completo para inglés, portugués y español." }
     }
   },
@@ -111,7 +111,9 @@
   },
   "analysis": {
     "title": "Análisis",
+    "description": "Evaluación jugada a jugada con Stockfish.",
     "requestAnalysis": "Analizar Partida",
+    "starting": "Iniciando análisis…",
     "analyzing": "Analizando con Stockfish…",
     "failed": "Análisis fallido",
     "failedHint": "Es posible que Stockfish no esté instalado en el servidor.",

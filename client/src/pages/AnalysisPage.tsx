@@ -78,31 +78,45 @@ function MoveBtn({
 }
 
 function EvalBar({ cp, mate }: { cp: number | null; mate: number | null }) {
-  const score = mate != null ? (mate > 0 ? 1200 : -1200) : (cp ?? 0);
-  const clamped = Math.max(-600, Math.min(600, score));
-  const whitePct = 50 + (clamped / 600) * 50;
+  const raw = mate != null ? (mate > 0 ? 900 : -900) : (cp ?? 0);
+  const clamped = Math.max(-900, Math.min(900, raw));
+  const whitePct = 50 + (clamped / 900) * 50;
+  const whiteWinning = clamped >= 0;
 
   const label = mate != null
-    ? `${mate > 0 ? '+' : '-'}M${Math.abs(mate)}`
-    : cp != null
-      ? `${cp >= 0 ? '+' : ''}${(cp / 100).toFixed(1)}`
-      : '0.0';
+    ? `M${Math.abs(mate)}`
+    : `${Math.abs((cp ?? 0) / 100).toFixed(1)}`;
 
   return (
-    <div className="relative w-full h-full rounded overflow-hidden border border-border" style={{ backgroundColor: '#1a1a1a' }}>
+    <div
+      className="relative w-full h-full rounded-sm overflow-hidden border border-border"
+      style={{ backgroundColor: '#262421' }}
+    >
+      {/* White (cream) portion */}
       <div
         className="absolute bottom-0 left-0 right-0"
-        style={{ height: `${whitePct}%`, backgroundColor: '#f0f0ee', transition: 'height 0.28s ease' }}
+        style={{
+          height: `${whitePct}%`,
+          backgroundColor: '#f0ede0',
+          transition: 'height 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+        }}
       />
+
+      {/* Score — vertical text, pinned to the far end of the winning colour */}
       <div
-        className="absolute left-0 right-0 flex justify-center pointer-events-none z-10"
-        style={{ bottom: `${whitePct}%`, transform: 'translateY(50%)' }}
+        className="absolute left-0 right-0 flex justify-center items-center pointer-events-none z-10"
+        style={whiteWinning ? { bottom: 5 } : { top: 5 }}
       >
         <span
-          className="text-[7.5px] font-black leading-none px-0.5 py-px rounded"
           style={{
-            color: whitePct > 50 ? '#111' : '#f0f0ee',
-            backgroundColor: whitePct > 50 ? 'rgba(240,240,238,0.92)' : 'rgba(26,26,26,0.88)',
+            color: whiteWinning ? '#000000' : '#ffffff',
+            fontSize: 11,
+            fontWeight: 900,
+            lineHeight: 1,
+            fontVariantNumeric: 'tabular-nums',
+            writingMode: 'vertical-lr',
+            transform: whiteWinning ? 'rotate(180deg)' : 'none',
+            whiteSpace: 'nowrap',
           }}
         >
           {label}
@@ -263,7 +277,7 @@ export function AnalysisPage() {
             CSS Grid: [10px eval bar] [board 1fr]
             Same grid row → eval bar automatically = board height.
           */}
-          <div style={{ display: 'grid', gridTemplateColumns: '10px 1fr', gap: '8px', alignItems: 'stretch' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '20px 1fr', gap: '8px', alignItems: 'stretch' }}>
             <div className="h-full">
               <EvalBar cp={evalCp} mate={mateIn} />
             </div>
@@ -327,7 +341,7 @@ export function AnalysisPage() {
             <div className="p-4 space-y-3">
               {!analysis && !requestMutation.isPending && !requestMutation.isSuccess && (
                 <div className="space-y-3">
-                  <p className="text-sm text-muted-foreground">Stockfish move-by-move evaluation.</p>
+                  <p className="text-sm text-muted-foreground">{t('analysis.description')}</p>
                   <button
                     onClick={() => requestMutation.mutate()}
                     className="w-full bg-primary text-primary-foreground py-2.5 rounded-lg text-sm font-bold hover:bg-primary/90 transition-colors"
@@ -340,7 +354,7 @@ export function AnalysisPage() {
               {(requestMutation.isPending || (requestMutation.isSuccess && !['completed', 'failed'].includes(analysis?.status))) && (
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Loader2 size={13} className="animate-spin text-primary shrink-0" />
-                  <span>{requestMutation.isPending ? 'Starting…' : t('analysis.analyzing')}</span>
+                  <span>{requestMutation.isPending ? t('analysis.starting') : t('analysis.analyzing')}</span>
                 </div>
               )}
 

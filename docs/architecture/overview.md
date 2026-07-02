@@ -1,49 +1,27 @@
 # System Overview
 
-ChessKernel is a self-hosted, real-time chess platform. All services run within a single Docker Compose stack. No external paid APIs are used.
+ChessKernel is a real-time, open-source chess platform. All services run within a single Docker Compose stack with no external paid APIs.
 
 ## High-Level Architecture
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                          Browser Client                          │
-│              React 18 + Vite + TypeScript + Tailwind            │
-└────────────────────────┬─────────────────┬──────────────────────┘
-                         │ HTTP/REST        │ WebSocket (Socket.IO)
-                         ▼                 ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                         Nginx (Reverse Proxy)                    │
-│              TLS termination, static assets, rate limit         │
-└────────────────────────┬─────────────────────────────────────────┘
-                         │
-                         ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                     NestJS API Server                            │
-│                                                                  │
-│  ┌──────────┐ ┌───────────┐ ┌──────────┐ ┌──────────────────┐  │
-│  │   Auth   │ │   Users   │ │  Games   │ │   Matchmaking    │  │
-│  └──────────┘ └───────────┘ └──────────┘ └──────────────────┘  │
-│  ┌──────────┐ ┌───────────┐ ┌──────────┐ ┌──────────────────┐  │
-│  │ Ratings  │ │ Analysis  │ │   Bots   │ │    Friends       │  │
-│  └──────────┘ └───────────┘ └──────────┘ └──────────────────┘  │
-│  ┌──────────┐ ┌───────────┐ ┌──────────┐                        │
-│  │Invitations│ │ Leaderboards│ │  Admin  │                      │
-│  └──────────┘ └───────────┘ └──────────┘                        │
-│                                                                  │
-│  ┌───────────────────────────────────────────────────────────┐  │
-│  │              Socket.IO Gateway (WebSocket)                 │  │
-│  └───────────────────────────────────────────────────────────┘  │
-└───────────────────────┬──────────────────────┬──────────────────┘
-                        │                      │
-              ┌─────────▼──────┐    ┌──────────▼──────┐
-              │   PostgreSQL   │    │      Redis       │
-              │  (persistent)  │    │  (cache/pubsub)  │
-              └────────────────┘    └─────────────────┘
-                        │
-              ┌─────────▼──────┐
-              │   Stockfish    │
-              │ (local binary) │
-              └────────────────┘
+```mermaid
+graph TB
+    Browser["Browser Client<br/>React 18 + Vite + TypeScript + Tailwind"]
+
+    subgraph Infra["Docker Compose Stack"]
+        Nginx["Nginx<br/>(Reverse Proxy / TLS)"]
+        NestJS["NestJS API Server"]
+        PG["PostgreSQL<br/>(persistent store)"]
+        Redis["Redis<br/>(cache / pub-sub)"]
+        SF["Stockfish<br/>(local binary)"]
+    end
+
+    Browser -- "HTTP REST /api/*" --> Nginx
+    Browser -- "WebSocket /socket.io/*" --> Nginx
+    Nginx --> NestJS
+    NestJS --> PG
+    NestJS --> Redis
+    NestJS --> SF
 ```
 
 ## Component Responsibilities

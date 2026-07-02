@@ -30,114 +30,140 @@ server/src/
 
 ## Request Lifecycle
 
-```
-HTTP Request
-  ↓
-NestJS Global Pipe (class-validator + class-transformer)
-  ↓
-JwtAuthGuard  →  validates Bearer token, attaches user to request
-  ↓
-Controller  →  delegates to Service
-  ↓
-Service  →  Prisma (DB) + Redis (cache)  →  returns DTO
-  ↓
-Response (JSON)
+```mermaid
+flowchart TD
+    HTTP["HTTP Request"]
+    Pipe["Global Validation Pipe\n(class-validator + class-transformer)"]
+    JWT["JwtAuthGuard\n(validates Bearer token, attaches user)"]
+    Ctrl["Controller\n(delegates to Service)"]
+    Svc["Service\n(business logic)"]
+    DB["Prisma / PostgreSQL"]
+    Cache["Redis\n(cache layer)"]
+    Resp["JSON Response"]
+
+    HTTP --> Pipe --> JWT --> Ctrl --> Svc
+    Svc --> DB
+    Svc --> Cache
+    Svc --> Resp
 ```
 
-```
-WebSocket Event
-  ↓
-WsAuthGuard  →  validates token from socket handshake auth
-  ↓
-Gateway @SubscribeMessage handler
-  ↓
-GameStateService (Redis read/write)  +  GamesService (Prisma)
-  ↓
-socket.emit / socket.to(room).emit
+```mermaid
+flowchart TD
+    WS["WebSocket Event"]
+    WSGuard["WsAuthGuard\n(validates handshake token)"]
+    GW["Gateway @SubscribeMessage handler"]
+    State["GameStateService\n(Redis read/write)"]
+    Games["GamesService\n(Prisma)"]
+    Emit["socket.emit / socket.to(room).emit"]
+
+    WS --> WSGuard --> GW --> State
+    GW --> Games
+    State --> Emit
+    Games --> Emit
 ```
 
 ## Auth Flow
 
+```mermaid
+sequenceDiagram
+    participant C as Client
+    participant API as NestJS
+    participant DB as PostgreSQL
+
+    C->>API: POST /auth/register
+    API->>API: hash password (bcrypt, 12 rounds)
+    API->>DB: create user + default ratings
+    API-->>C: access_token (15m) + refresh_token (7d)
+
+    C->>API: POST /auth/login
+    API->>API: verify password hash
+    API->>DB: store refresh_token hash
+    API-->>C: access_token + refresh_token (HttpOnly cookie)
+
+    C->>API: POST /auth/refresh
+    API->>DB: verify token hash not revoked
+    API->>DB: revoke old token, issue new pair
+    API-->>C: new access_token + refresh_token
+
+    C->>API: POST /auth/logout
+    API->>DB: revoke refresh token
+    API-->>C: 200 OK
 ```
-POST /auth/register
-  → hash password (bcrypt, 12 rounds)
-  → create user + default ratings
-  → return access token (15 min) + refresh token (7 days)
 
-POST /auth/login
-  → verify password hash
-  → store refresh token hash in refresh_tokens table
-  → return access token + refresh token (HttpOnly cookie)
-
-POST /auth/refresh
-  → verify refresh token signature + expiry
-  → check token hash exists in DB and not revoked
-  → rotate: revoke old, issue new pair
-
-POST /auth/logout
-  → revoke refresh token in DB
-```
-
-Access token: JWT signed with `JWT_SECRET`, 15-minute TTL.
-Refresh token: opaque random bytes, stored as SHA-256 hash.
+Access token: JWT signed with `JWT_SECRET`, 15-minute TTL.  
+Refresh token: opaque random bytes, stored as SHA-256 hash in `refresh_tokens`.
 
 ## Game State Machine
 
-States: `waiting → active → ended | abandoned`
+```mermaid
+stateDiagram-v2
+    [*] --> WAITING : game created
+    WAITING --> ACTIVE : both players connect (clock starts)
+    ACTIVE --> ACTIVE : valid move played
+    ACTIVE --> ENDED : checkmate
+    ACTIVE --> ENDED : stalemate / insufficient material
+    ACTIVE --> ENDED : clock reaches 0
+    ACTIVE --> ENDED : resignation (game:resign)
+    ACTIVE --> ENDED : draw agreement
+    ACTIVE --> ABANDONED : disconnect > 60 s grace period
+    ENDED --> [*]
+    ABANDONED --> [*]
+```
 
-Transitions are authoritative on the server only:
-
-| Event | From | To | Notes |
-|-------|------|-----|-------|
-| Both players connect | waiting | active | Starts clock |
-| Move played | active | active | Validates via chess.js |
-| Checkmate / stalemate | active | ended | Computed by chess.js |
-| Clock reaches 0 | active | ended | Server clock authority |
-| Resignation | active | ended | socket `game:resign` |
-| Draw agreement | active | ended | Both sides must agree |
-| Player disconnects | active | active | Grace period (60s), then forfeit |
-
-Active game state is cached in Redis (`game:{id}`) for O(1) reconnect. PostgreSQL is the authoritative store — Redis is repopulated from DB on cache miss.
+Active game state is cached in Redis (`game:{id}`) for O(1) reconnect. PostgreSQL is authoritative — Redis is repopulated from DB on cache miss.
 
 ## Matchmaking
 
-Uses a Redis Sorted Set per time control (`queue:{timeControl}`):
-- Score = player rating
-- `ZADD` on join, `ZREM` on leave/match
-- Matching: dequeue pair within ±200 ELO window using `ZRANGEBYSCORE`
-- Bot games bypass the queue and directly spawn a game record
+```mermaid
+flowchart LR
+    Join["Player joins queue\nZADD queue:{tc} rating userId"]
+    Worker["Worker (500ms poll)\nZRANGEBYSCORE ±200 ELO"]
+    Match{"Match\nfound?"}
+    CreateGame["Create game record\nZREM both players"]
+    Expand["Expand range ±50\nevery 10 s (max ±400)"]
+
+    Join --> Worker --> Match
+    Match -- yes --> CreateGame
+    Match -- no --> Expand --> Worker
+```
 
 ## Analysis Pipeline
 
-```
-POST /analysis { gameId }
-  → create game_analysis record (status: pending)
-  → spawn AnalysisWorker (NestJS queue or direct async)
+```mermaid
+flowchart TD
+    Req["POST /analysis {gameId}"]
+    Create["Create game_analysis\n(status: pending)"]
+    Worker["AnalysisWorker (async)"]
+    Loop["For each move in game_moves"]
+    SetPos["Stockfish: position fen"]
+    Go["Stockfish: go depth 20"]
+    Parse["Parse info lines\n→ eval + best_move"]
+    Classify["Classify move\n(cp delta vs best)"]
+    Save["Save move_analysis"]
+    Done["Update game_analysis\n(status: completed)"]
+    Emit["Emit analysisComplete\n(Socket.IO)"]
 
-AnalysisWorker:
-  for each move in game_moves:
-    → set position in Stockfish (UCI: "position fen <fen>")
-    → "go depth 20"
-    → parse info lines → extract eval + best move
-    → classify move (compare played move vs best move, eval delta)
-    → save to move_analysis
-
-  → update game_analysis status: completed
+    Req --> Create --> Worker --> Loop
+    Loop --> SetPos --> Go --> Parse --> Classify --> Save --> Loop
+    Loop -- done --> Done --> Emit
 ```
 
 Move classification thresholds (centipawn eval drop from best move):
-- Brilliant: engine says sub-optimal but tactically sharp (heuristic)
-- Best / Excellent: 0–10 cp below best
-- Good: 10–25 cp below best
-- Inaccuracy: 25–100 cp below best
-- Mistake: 100–300 cp below best
-- Blunder: >300 cp below best
-- Book: move matches opening book
+
+| Classification | CP Drop |
+|----------------|---------|
+| Brilliant | sub-optimal but tactically sharp (heuristic) |
+| Best / Excellent | 0–10 |
+| Good | 10–25 |
+| Inaccuracy | 25–100 |
+| Mistake | 100–300 |
+| Blunder | >300 |
+| Book | matches opening book |
 
 ## Rating System (Glicko-2)
 
 After each ranked game:
-1. Fetch `user_ratings` for both players (rating φ σ)
+1. Fetch `user_ratings` for both players (rating, φ, σ)
 2. Run Glicko-2 update: single-game period
 3. Clamp φ between 30 and 350
 4. Write new rating values + `games_played++`

@@ -2,31 +2,34 @@
 
 ## Real-Time Game Flow
 
-```
-Player A                 Server                   Player B
-   │                       │                          │
-   │──── connect() ────────▶│                          │
-   │                       │◀──── connect() ──────────│
-   │                       │                          │
-   │── joinQueue(opts) ────▶│                          │
-   │                       │◀─ joinQueue(opts) ───────│
-   │                       │                          │
-   │                       │── matchFound() ──────────▶│
-   │◀── matchFound() ──────│                          │
-   │                       │                          │
-   │◀─────────── gameStart(gameId, color, position) ──▶│
-   │                       │                          │
-   │── makeMove(gameId,move)▶│                         │
-   │                       │── validate(move) ─┐      │
-   │                       │◀─ valid ──────────┘      │
-   │                       │                          │
-   │◀── moveAck(move,pos) ─│─── moveBroadcast ────────▶│
-   │                       │                          │
-   │                       │── updateClock() ──────────▶│
-   │◀── updateClock() ─────│                          │
-   │                       │                          │
-   │                    [game ends]                   │
-   │◀────────── gameOver(result, ratingDelta) ─────────▶│
+```mermaid
+sequenceDiagram
+    participant A as Player A
+    participant S as Server
+    participant B as Player B
+
+    A->>S: connect()
+    B->>S: connect()
+
+    A->>S: joinQueue(opts)
+    B->>S: joinQueue(opts)
+
+    S-->>A: matchFound(gameId)
+    S-->>B: matchFound(gameId)
+
+    S-->>A: gameStart(gameId, color, position)
+    S-->>B: gameStart(gameId, color, position)
+
+    A->>S: makeMove(gameId, move)
+    S->>S: validate(move) via chess.js
+    S-->>A: moveAck(move, fen)
+    S-->>B: moveBroadcast(move, fen)
+
+    S-->>A: updateClock(white_ms, black_ms)
+    S-->>B: updateClock(white_ms, black_ms)
+
+    S-->>A: gameOver(result, ratingDelta)
+    S-->>B: gameOver(result, ratingDelta)
 ```
 
 ## Matchmaking System
@@ -51,11 +54,17 @@ ZADD matchmaking:{timeControl} {rating} {userId}
 5. Max range: ±400 rating points
 ```
 
-### State Machine (Game)
+### Game State Machine
 
-```
-WAITING → ACTIVE → ENDED
-    └──────────────────▶ ABANDONED (player disconnects > 60s)
+```mermaid
+stateDiagram-v2
+    [*] --> WAITING : game created
+    WAITING --> ACTIVE : both players connect
+    ACTIVE --> ACTIVE : move played
+    ACTIVE --> ENDED : checkmate / stalemate / clock / draw / resignation
+    ACTIVE --> ABANDONED : player disconnects > 60s
+    ENDED --> [*]
+    ABANDONED --> [*]
 ```
 
 ## Rating System (Glicko-2)
@@ -71,29 +80,23 @@ Implementation based on Mark Glickman's original paper.
 | σ | Volatility | 0.06 |
 | τ | System constant | 0.5 |
 
-### Update Frequency
-
-Ratings update immediately after each game. The "rating period" is one game.
-
-### New Player Defaults
-
-- Rating: 1200
-- RD: 350
-- Volatility: 0.06
+Ratings update immediately after each game. New player defaults: rating 1200, RD 350, volatility 0.06.
 
 ## Bot System Architecture
 
-```
-BotService
-  │
-  ├── StockfishProcess (spawned per game)
-  │     ├── UCI communication (stdin/stdout)
-  │     ├── position FEN → bestmove
-  │     └── Configurable depth/time per difficulty
-  │
-  └── BotGame (extends Game)
-        ├── Player side: human
-        └── Bot side: StockfishProcess
+```mermaid
+graph LR
+    BotSvc["BotService"]
+    SF["StockfishProcess<br/>(spawned per game)"]
+    BotGame["BotGame"]
+    Human["Human Player"]
+    UCI["UCI stdin/stdout"]
+
+    BotSvc --> SF
+    BotSvc --> BotGame
+    SF -- UCI --> UCI
+    BotGame --> Human
+    BotGame --> SF
 ```
 
 ### Difficulty Levels
@@ -109,21 +112,41 @@ BotService
 
 ## Analysis Pipeline
 
+```mermaid
+sequenceDiagram
+    participant C as Client
+    participant API as NestJS API
+    participant DB as PostgreSQL
+    participant W as AnalysisWorker
+    participant SF as Stockfish
+
+    C->>API: POST /api/analysis/request
+    API->>DB: create game_analysis (status: pending)
+    API->>W: dispatch job
+
+    loop For each move
+        W->>SF: position fen <fen>
+        W->>SF: go depth 20
+        SF-->>W: info cp <eval> bestmove <uci>
+        W->>W: classify move (cp delta vs best)
+        W->>DB: save move_analysis
+    end
+
+    W->>DB: update game_analysis (status: completed)
+    W-->>C: emit analysisComplete (Socket.IO)
 ```
-POST /api/analysis/request
-  │
-  ├── Store request in DB (status: PENDING)
-  │
-  └── Dispatch AnalysisJob to queue
-        │
-        └── AnalysisWorker
-              ├── Spawn Stockfish process
-              ├── Feed moves one by one (UCI)
-              ├── Collect centipawn evaluations
-              ├── Classify moves (good/inaccuracy/mistake/blunder)
-              ├── Store results in DB
-              └── Emit analysisComplete via Socket.IO
-```
+
+Move classification thresholds (centipawn drop from best move):
+
+| Classification | CP Drop |
+|----------------|---------|
+| Brilliant | engine says sub-optimal but tactically sharp |
+| Best / Excellent | 0–10 |
+| Good | 10–25 |
+| Inaccuracy | 25–100 |
+| Mistake | 100–300 |
+| Blunder | >300 |
+| Book | matches opening book |
 
 ## WebSocket Event System
 
@@ -172,9 +195,30 @@ All services on one Docker Compose stack. Sufficient for thousands of concurrent
 
 ### Horizontal Scaling Path
 
-1. Add Redis Pub/Sub adapter for Socket.IO (`@socket.io/redis-adapter`)
+```mermaid
+graph LR
+    LB["Nginx Load Balancer"]
+    N1["NestJS Instance 1"]
+    N2["NestJS Instance 2"]
+    N3["NestJS Instance N"]
+    Redis["Redis<br/>(Socket.IO adapter + queue)"]
+    PG["PostgreSQL<br/>(+ read replicas)"]
+
+    LB --> N1
+    LB --> N2
+    LB --> N3
+    N1 <--> Redis
+    N2 <--> Redis
+    N3 <--> Redis
+    N1 --> PG
+    N2 --> PG
+    N3 --> PG
+```
+
+Steps:
+1. Add Redis Pub/Sub adapter (`@socket.io/redis-adapter`)
 2. Run multiple NestJS instances behind Nginx load balancer
 3. PostgreSQL read replicas for leaderboard queries
-4. Stockfish worker pool with job queue (Bull/BullMQ over Redis)
+4. Stockfish worker pool via BullMQ over Redis
 
 The Redis adapter is already architected into the WebSocket gateway so scaling requires only configuration, no code changes.

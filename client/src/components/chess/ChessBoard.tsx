@@ -17,35 +17,77 @@ const CLS: Record<string, { bg: string; text: string; icon: string; sqColor: str
   miss:       { bg: '#ca3431', text: '#fff', icon: '×',   sqColor: 'rgba(202,52,49,0.45)' },
 };
 
-// Circular badge overlaid on the destination square — bottom-right corner
-function SquareBadge({ square, cls, orientation }: {
+// Standalone classification badge — its own SVG overlay, independent of arrows
+function ClassificationBadge({
+  square, cls, orientation,
+}: {
   square: string; cls: string; orientation: 'white' | 'black';
 }) {
   const meta = CLS[cls];
   if (!meta || !meta.icon) return null;
-  const col = square.charCodeAt(0) - 97;
-  const row = parseInt(square[1]) - 1;
-  const rightPct = orientation === 'white' ? (7 - col) * 12.5 : col * 12.5;
-  const bottomPct = orientation === 'white' ? row * 12.5 : (7 - row) * 12.5;
+
+  const center = sqToXY(square, orientation);
+  const r = 0.22; // radius in SVG viewBox units (≈22px on a 450px board)
+
+  // Bottom-right corner of the square, inset by r so the badge sits inside
+  const cx = center.x + (0.5 - r);
+  const cy = center.y + (0.5 - r);
+
+  const tc = meta.text; // text/icon colour
+
+  let icon: React.ReactNode;
+  if (cls === 'best') {
+    // 5-point star
+    const s = r * 0.72;
+    icon = (
+      <path
+        d={`M${cx},${cy - s} L${cx + s*0.29},${cy - s*0.09} L${cx + s*0.95},${cy - s*0.31} L${cx + s*0.47},${cy + s*0.40} L${cx + s*0.59},${cy + s} L${cx},${cy + s*0.62} L${cx - s*0.59},${cy + s} L${cx - s*0.47},${cy + s*0.40} L${cx - s*0.95},${cy - s*0.31} L${cx - s*0.29},${cy - s*0.09} Z`}
+        fill={tc}
+      />
+    );
+  } else if (cls === 'excellent') {
+    icon = (
+      <path
+        d={`M${cx - r*0.52},${cy - r*0.08} L${cx - r*0.08},${cy + r*0.48} L${cx + r*0.56},${cy - r*0.52}`}
+        stroke={tc} strokeWidth={r * 0.32} fill="none"
+        strokeLinecap="round" strokeLinejoin="round"
+      />
+    );
+  } else if (cls === 'miss') {
+    const o = r * 0.46;
+    icon = (
+      <>
+        <line x1={cx - o} y1={cy - o} x2={cx + o} y2={cy + o} stroke={tc} strokeWidth={r * 0.3} strokeLinecap="round" />
+        <line x1={cx + o} y1={cy - o} x2={cx - o} y2={cy + o} stroke={tc} strokeWidth={r * 0.3} strokeLinecap="round" />
+      </>
+    );
+  } else {
+    // Text glyphs: !, !!, ?, ??, ?!, B
+    const two = meta.icon.length > 1;
+    icon = (
+      <text
+        x={cx} y={cy + r * 0.37}
+        textAnchor="middle"
+        fontSize={two ? r * 0.72 : r * 1.05}
+        fontWeight="900"
+        fill={tc}
+        fontFamily="system-ui,sans-serif"
+      >
+        {meta.icon}
+      </text>
+    );
+  }
+
   return (
-    <div
-      className="absolute pointer-events-none flex items-center justify-center font-black"
-      style={{
-        right: `calc(${rightPct}% + 2px)`,
-        bottom: `calc(${bottomPct}% + 2px)`,
-        width: 22, height: 22,
-        borderRadius: '50%',
-        backgroundColor: meta.bg,
-        color: meta.text,
-        fontSize: meta.icon.length > 1 ? 7 : 10,
-        lineHeight: 1,
-        zIndex: 20,
-        boxShadow: '0 1px 5px rgba(0,0,0,0.55)',
-        border: '1.5px solid rgba(255,255,255,0.3)',
-      }}
+    <svg
+      className="absolute inset-0 w-full h-full pointer-events-none"
+      viewBox="0 0 8 8"
+      style={{ zIndex: 20 }}
     >
-      {meta.icon}
-    </div>
+      <circle cx={cx} cy={cy} r={r} fill={meta.bg} />
+      <circle cx={cx} cy={cy} r={r} fill="none" stroke="rgba(255,255,255,0.28)" strokeWidth="0.02" />
+      {icon}
+    </svg>
   );
 }
 
@@ -358,7 +400,7 @@ export function ChessBoard({
         animationDuration={0}
       />
 
-      {/* Full custom SVG arrow overlay — handles straight + L-shaped knight arrows */}
+      {/* Arrow overlay */}
       <ArrowLayer
         arrows={allArrows}
         previewFrom={previewFrom !== previewTo ? previewFrom : null}
@@ -366,9 +408,13 @@ export function ChessBoard({
         orientation={orientation}
       />
 
-      {/* Classification badge overlay on destination square */}
+      {/* Classification badge — standalone SVG, not coupled to arrows */}
       {lastMove?.to && moveClassification && (
-        <SquareBadge square={lastMove.to} cls={moveClassification} orientation={orientation} />
+        <ClassificationBadge
+          square={lastMove.to}
+          cls={moveClassification}
+          orientation={orientation}
+        />
       )}
     </div>
   );

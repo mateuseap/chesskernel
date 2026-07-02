@@ -2,20 +2,144 @@
 
 ## Entity Relationship Diagram
 
-```
-Users ──────────────┬──────────── Games (as white)
-  │                 └──────────── Games (as black)
-  │
-  ├──── UserRatings (per time control)
-  │
-  ├──── Friends (self-referential)
-  │
-  ├──── Invitations (sender / receiver)
-  │
-  └──── Notifications
+```mermaid
+erDiagram
+    users {
+        uuid id PK
+        varchar username
+        varchar email
+        varchar password_hash
+        text avatar_url
+        text bio
+        varchar country
+        boolean is_admin
+        boolean is_banned
+        boolean email_verified
+        timestamptz created_at
+        timestamptz last_seen_at
+    }
 
-Games ──── GameMoves
-      └─── GameAnalysis ──── MoveAnalysis
+    user_ratings {
+        uuid id PK
+        uuid user_id FK
+        enum time_control
+        int rating
+        float rating_deviation
+        float volatility
+        int games_played
+        timestamptz updated_at
+    }
+
+    games {
+        uuid id PK
+        uuid white_id FK
+        uuid black_id FK
+        enum time_control
+        int initial_time_ms
+        int increment_ms
+        enum status
+        enum result
+        enum termination
+        text initial_fen
+        text pgn
+        int white_rating_before
+        int black_rating_before
+        int white_rating_delta
+        int black_rating_delta
+        boolean is_bot_game
+        varchar bot_difficulty
+        timestamptz started_at
+        timestamptz ended_at
+        timestamptz created_at
+    }
+
+    game_moves {
+        uuid id PK
+        uuid game_id FK
+        int move_number
+        enum color
+        varchar san
+        varchar uci
+        text fen_after
+        int time_left_ms
+        timestamptz created_at
+    }
+
+    game_analysis {
+        uuid id PK
+        uuid game_id FK
+        enum status
+        varchar engine_version
+        int depth
+        timestamptz created_at
+        timestamptz completed_at
+    }
+
+    move_analysis {
+        uuid id PK
+        uuid analysis_id FK
+        int move_number
+        enum color
+        int eval_centipawns
+        int mate_in
+        varchar best_move_uci
+        enum classification
+        timestamptz created_at
+    }
+
+    friends {
+        uuid id PK
+        uuid requester_id FK
+        uuid addressee_id FK
+        enum status
+        timestamptz created_at
+        timestamptz updated_at
+    }
+
+    invitations {
+        uuid id PK
+        uuid sender_id FK
+        uuid receiver_id FK
+        varchar token
+        enum time_control
+        int initial_time_ms
+        int increment_ms
+        enum color_preference
+        enum status
+        timestamptz expires_at
+        timestamptz created_at
+    }
+
+    notifications {
+        uuid id PK
+        uuid user_id FK
+        enum type
+        jsonb payload
+        boolean read
+        timestamptz created_at
+    }
+
+    refresh_tokens {
+        uuid id PK
+        uuid user_id FK
+        varchar token_hash
+        timestamptz expires_at
+        boolean revoked
+        timestamptz created_at
+    }
+
+    users ||--o{ user_ratings : "has"
+    users ||--o{ games : "plays as white"
+    users ||--o{ games : "plays as black"
+    users ||--o{ friends : "requests"
+    users ||--o{ friends : "receives"
+    users ||--o{ invitations : "sends"
+    users ||--o{ invitations : "receives"
+    users ||--o{ notifications : "receives"
+    users ||--o{ refresh_tokens : "owns"
+    games ||--o{ game_moves : "contains"
+    games ||--o| game_analysis : "has"
+    game_analysis ||--o{ move_analysis : "contains"
 ```
 
 ## Tables
@@ -158,7 +282,6 @@ Games ──── GameMoves
 ## Indexes
 
 ```sql
--- Hot paths
 CREATE INDEX idx_games_white_id ON games(white_id);
 CREATE INDEX idx_games_black_id ON games(black_id);
 CREATE INDEX idx_games_status ON games(status);
