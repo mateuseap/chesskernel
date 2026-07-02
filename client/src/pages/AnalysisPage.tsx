@@ -341,7 +341,7 @@ export function AnalysisPage() {
             <div className="p-4 space-y-3">
               {!analysis && !requestMutation.isPending && !requestMutation.isSuccess && (
                 <div className="space-y-3">
-                  <p className="text-sm text-muted-foreground">Stockfish move-by-move evaluation.</p>
+                  <p className="text-sm text-muted-foreground">{t('analysis.description')}</p>
                   <button
                     onClick={() => requestMutation.mutate()}
                     className="w-full bg-primary text-primary-foreground py-2.5 rounded-lg text-sm font-bold hover:bg-primary/90 transition-colors"
@@ -354,7 +354,7 @@ export function AnalysisPage() {
               {(requestMutation.isPending || (requestMutation.isSuccess && !['completed', 'failed'].includes(analysis?.status))) && (
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Loader2 size={13} className="animate-spin text-primary shrink-0" />
-                  <span>{requestMutation.isPending ? 'Starting…' : t('analysis.analyzing')}</span>
+                  <span>{requestMutation.isPending ? t('analysis.starting') : t('analysis.analyzing')}</span>
                 </div>
               )}
 

@@ -18,7 +18,6 @@
       "bots":      { "title": "vs Stockfish",         "desc": "Desafie o melhor motor de xadrez em qualquer nível." },
       "analysis":  { "title": "Análise de Lances",    "desc": "Revisão automática com classificação de lances." },
       "ladder":    { "title": "Classificação",        "desc": "Ratings separados para bullet, blitz, rapid e clássico." },
-      "selfhost":  { "title": "Auto-hospedagem",      "desc": "Open source e implantável na sua infraestrutura." },
       "multilang": { "title": "Multilíngue",          "desc": "Suporte completo para inglês, português e espanhol." }
     }
   },
@@ -111,7 +110,9 @@
   },
   "analysis": {
     "title": "Análise",
+    "description": "Avaliação lance a lance com Stockfish.",
     "requestAnalysis": "Analisar Partida",
+    "starting": "Iniciando análise…",
     "analyzing": "Analisando com Stockfish…",
     "failed": "Análise falhou",
     "failedHint": "O Stockfish pode não estar instalado no servidor.",

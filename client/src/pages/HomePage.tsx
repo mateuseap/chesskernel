@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Chessboard } from 'react-chessboard';
 import { useAuthStore } from '@/stores/auth.store';
-import { Zap, Bot, BarChart2, Trophy, Shield, Globe } from 'lucide-react';
+import { Zap, Bot, BarChart2, Trophy, Globe } from 'lucide-react';
 
 const STARTING_FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
 
@@ -11,7 +11,6 @@ const FEATURES = [
   { Icon: Bot,       key: 'bots'      },
   { Icon: BarChart2, key: 'analysis'  },
   { Icon: Trophy,    key: 'ladder'    },
-  { Icon: Shield,    key: 'selfhost'  },
   { Icon: Globe,     key: 'multilang' },
 ] as const;
 
@@ -27,7 +26,7 @@ export function HomePage() {
           {/* Text side */}
           <div className="flex-1 text-left max-w-lg">
             <span className="inline-block text-xs font-bold uppercase tracking-[0.18em] text-primary mb-5">
-              Open Source · Self-Hosted
+              Open Source · Free Forever
             </span>
             <h1 className="text-5xl sm:text-6xl font-black tracking-tight leading-[1.06] text-foreground mb-5">
               {t('home.title')}

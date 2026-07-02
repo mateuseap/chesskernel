@@ -18,7 +18,6 @@
       "bots":      { "title": "Play vs Stockfish", "desc": "Challenge the world's strongest engine at any difficulty." },
       "analysis":  { "title": "Move Analysis",     "desc": "Automatic post-game review with move classifications." },
       "ladder":    { "title": "Leaderboards",      "desc": "Separate ratings for bullet, blitz, rapid, and classical." },
-      "selfhost":  { "title": "Self-Hosted",       "desc": "Open source and deployable on your own infrastructure." },
       "multilang": { "title": "Multilingual",      "desc": "Full support for English, Portuguese, and Spanish." }
     }
   },
@@ -111,7 +110,9 @@
   },
   "analysis": {
     "title": "Analysis",
+    "description": "Move-by-move evaluation powered by Stockfish.",
     "requestAnalysis": "Analyze Game",
+    "starting": "Starting analysis…",
     "analyzing": "Analyzing with Stockfish…",
     "failed": "Analysis failed",
     "failedHint": "Stockfish may not be installed on the server.",
