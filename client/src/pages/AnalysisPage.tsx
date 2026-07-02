@@ -89,10 +89,10 @@ function EvalBar({ cp, mate }: { cp: number | null; mate: number | null }) {
 
   return (
     <div
-      className="relative w-full h-full rounded-sm overflow-hidden"
+      className="relative w-full h-full rounded-sm overflow-hidden border border-border"
       style={{ backgroundColor: '#262421' }}
     >
-      {/* White portion */}
+      {/* White (cream) portion */}
       <div
         className="absolute bottom-0 left-0 right-0"
         style={{
@@ -102,21 +102,19 @@ function EvalBar({ cp, mate }: { cp: number | null; mate: number | null }) {
         }}
       />
 
-      {/* Score label — vertical text pinned to the far end of the winning side */}
+      {/* Score — vertical text, pinned to the far end of the winning colour */}
       <div
         className="absolute left-0 right-0 flex justify-center items-center pointer-events-none z-10"
-        style={whiteWinning ? { bottom: 4, top: 'auto' } : { top: 4, bottom: 'auto' }}
+        style={whiteWinning ? { bottom: 5 } : { top: 5 }}
       >
         <span
           style={{
-            color:           whiteWinning ? '#1a1a18' : '#f0ede0',
+            color: whiteWinning ? '#000000' : '#ffffff',
             fontSize: 11,
-            fontWeight: 800,
+            fontWeight: 900,
             lineHeight: 1,
-            letterSpacing: '0.01em',
             fontVariantNumeric: 'tabular-nums',
             writingMode: 'vertical-lr',
-            // white-winning: text reads bottom-to-top; black-winning: top-to-bottom
             transform: whiteWinning ? 'rotate(180deg)' : 'none',
             whiteSpace: 'nowrap',
           }}

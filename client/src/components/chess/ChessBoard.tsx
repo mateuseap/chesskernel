@@ -17,45 +17,79 @@ const CLS: Record<string, { bg: string; text: string; icon: string; sqColor: str
   miss:       { bg: '#ca3431', text: '#fff', icon: '×',   sqColor: 'rgba(202,52,49,0.45)' },
 };
 
-// SVG icon paths for each classification badge (used inside the ArrowLayer SVG)
-// Viewbox per icon: 0 0 10 10
-const BADGE_ICONS: Record<string, React.ReactNode> = {
-  brilliant: (
-    <>
-      <text x="5" y="7.8" textAnchor="middle" fontSize="6.5" fontWeight="900" fill="#fff" fontFamily="monospace">!!</text>
-    </>
-  ),
-  great: (
-    <text x="5" y="7.8" textAnchor="middle" fontSize="7.5" fontWeight="900" fill="#fff" fontFamily="monospace">!</text>
-  ),
-  best: (
-    // Star
-    <path d="M5,1.2 L6.18,4.09 L9.27,4.09 L6.8,5.91 L7.73,8.8 L5,7.04 L2.27,8.8 L3.2,5.91 L0.73,4.09 L3.82,4.09 Z" fill="#fff" />
-  ),
-  excellent: (
-    // Checkmark
-    <path d="M1.5,5.2 L3.8,7.8 L8.5,2.2" stroke="#fff" strokeWidth="1.8" fill="none" strokeLinecap="round" strokeLinejoin="round" />
-  ),
-  book: (
-    <text x="5" y="7.8" textAnchor="middle" fontSize="7" fontWeight="900" fill="#fff" fontFamily="serif">B</text>
-  ),
-  inaccuracy: (
-    <text x="5" y="7.8" textAnchor="middle" fontSize="5.5" fontWeight="900" fill="#222" fontFamily="monospace">?!</text>
-  ),
-  mistake: (
-    <text x="5" y="7.8" textAnchor="middle" fontSize="7.5" fontWeight="900" fill="#fff" fontFamily="monospace">?</text>
-  ),
-  blunder: (
-    <text x="5" y="7.8" textAnchor="middle" fontSize="5.5" fontWeight="900" fill="#fff" fontFamily="monospace">??</text>
-  ),
-  miss: (
-    // X cross
-    <>
-      <line x1="2.5" y1="2.5" x2="7.5" y2="7.5" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" />
-      <line x1="7.5" y1="2.5" x2="2.5" y2="7.5" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" />
-    </>
-  ),
-};
+// Standalone classification badge — its own SVG overlay, independent of arrows
+function ClassificationBadge({
+  square, cls, orientation,
+}: {
+  square: string; cls: string; orientation: 'white' | 'black';
+}) {
+  const meta = CLS[cls];
+  if (!meta || !meta.icon) return null;
+
+  const center = sqToXY(square, orientation);
+  const r = 0.22; // radius in SVG viewBox units (≈22px on a 450px board)
+
+  // Bottom-right corner of the square, inset by r so the badge sits inside
+  const cx = center.x + (0.5 - r);
+  const cy = center.y + (0.5 - r);
+
+  const tc = meta.text; // text/icon colour
+
+  let icon: React.ReactNode;
+  if (cls === 'best') {
+    // 5-point star
+    const s = r * 0.72;
+    icon = (
+      <path
+        d={`M${cx},${cy - s} L${cx + s*0.29},${cy - s*0.09} L${cx + s*0.95},${cy - s*0.31} L${cx + s*0.47},${cy + s*0.40} L${cx + s*0.59},${cy + s} L${cx},${cy + s*0.62} L${cx - s*0.59},${cy + s} L${cx - s*0.47},${cy + s*0.40} L${cx - s*0.95},${cy - s*0.31} L${cx - s*0.29},${cy - s*0.09} Z`}
+        fill={tc}
+      />
+    );
+  } else if (cls === 'excellent') {
+    icon = (
+      <path
+        d={`M${cx - r*0.52},${cy - r*0.08} L${cx - r*0.08},${cy + r*0.48} L${cx + r*0.56},${cy - r*0.52}`}
+        stroke={tc} strokeWidth={r * 0.32} fill="none"
+        strokeLinecap="round" strokeLinejoin="round"
+      />
+    );
+  } else if (cls === 'miss') {
+    const o = r * 0.46;
+    icon = (
+      <>
+        <line x1={cx - o} y1={cy - o} x2={cx + o} y2={cy + o} stroke={tc} strokeWidth={r * 0.3} strokeLinecap="round" />
+        <line x1={cx + o} y1={cy - o} x2={cx - o} y2={cy + o} stroke={tc} strokeWidth={r * 0.3} strokeLinecap="round" />
+      </>
+    );
+  } else {
+    // Text glyphs: !, !!, ?, ??, ?!, B
+    const two = meta.icon.length > 1;
+    icon = (
+      <text
+        x={cx} y={cy + r * 0.37}
+        textAnchor="middle"
+        fontSize={two ? r * 0.72 : r * 1.05}
+        fontWeight="900"
+        fill={tc}
+        fontFamily="system-ui,sans-serif"
+      >
+        {meta.icon}
+      </text>
+    );
+  }
+
+  return (
+    <svg
+      className="absolute inset-0 w-full h-full pointer-events-none"
+      viewBox="0 0 8 8"
+      style={{ zIndex: 20 }}
+    >
+      <circle cx={cx} cy={cy} r={r} fill={meta.bg} />
+      <circle cx={cx} cy={cy} r={r} fill="none" stroke="rgba(255,255,255,0.28)" strokeWidth="0.02" />
+      {icon}
+    </svg>
+  );
+}
 
 // ─── Custom arrow overlay ─────────────────────────────────────────────────────
 
@@ -82,15 +116,11 @@ function ArrowLayer({
   previewFrom,
   previewTo,
   orientation,
-  badgeSquare,
-  badgeCls,
 }: {
   arrows: ArrowDef[];
   previewFrom: string | null;
   previewTo: string | null;
   orientation: 'white' | 'black';
-  badgeSquare?: string | null;
-  badgeCls?: string | null;
 }) {
   const all: (ArrowDef & { preview?: boolean })[] = [
     ...arrows,
@@ -196,26 +226,6 @@ function ArrowLayer({
           />
         );
       })}
-
-      {/* Classification badge — rendered in SVG coords, perfectly aligned to square */}
-      {badgeSquare && badgeCls && (() => {
-        const meta = CLS[badgeCls];
-        const icon = BADGE_ICONS[badgeCls];
-        if (!meta || !icon) return null;
-        const col = badgeSquare.charCodeAt(0) - 97;
-        const row = parseInt(badgeSquare[1]) - 1;
-        // Bottom-right corner of the destination square in SVG coords
-        const cx = orientation === 'white' ? col + 0.82 : (7 - col) + 0.18;
-        const cy = orientation === 'white' ? (7 - row) + 0.82 : row + 0.18;
-        const r  = 0.38; // radius in viewBox units
-        return (
-          <g key="badge" transform={`translate(${cx - r}, ${cy - r}) scale(${r * 2 / 10})`} style={{ pointerEvents: 'none' }}>
-            <circle cx="5" cy="5" r="5" fill={meta.bg} />
-            <circle cx="5" cy="5" r="5" fill="none" stroke="rgba(255,255,255,0.35)" strokeWidth="0.8" />
-            {icon}
-          </g>
-        );
-      })()}
     </svg>
   );
 }
@@ -390,15 +400,22 @@ export function ChessBoard({
         animationDuration={0}
       />
 
-      {/* SVG overlay: arrows + classification badge — all in square-coordinate space */}
+      {/* Arrow overlay */}
       <ArrowLayer
         arrows={allArrows}
         previewFrom={previewFrom !== previewTo ? previewFrom : null}
         previewTo={previewFrom !== previewTo ? previewTo : null}
         orientation={orientation}
-        badgeSquare={lastMove?.to ?? null}
-        badgeCls={moveClassification ?? null}
       />
+
+      {/* Classification badge — standalone SVG, not coupled to arrows */}
+      {lastMove?.to && moveClassification && (
+        <ClassificationBadge
+          square={lastMove.to}
+          cls={moveClassification}
+          orientation={orientation}
+        />
+      )}
     </div>
   );
 }
