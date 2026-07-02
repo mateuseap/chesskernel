@@ -26,9 +26,12 @@ COPY --from=builder /build/server/package.json ./
 COPY --from=builder /build/server/prisma ./prisma
 COPY --from=builder /build/node_modules ./node_modules
 COPY --from=builder /build/shared ./shared
+COPY docker/docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
 ENV NODE_ENV=production
 
 EXPOSE 3001
 
-CMD ["node", "dist/main.js"]
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]

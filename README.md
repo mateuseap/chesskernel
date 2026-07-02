@@ -13,7 +13,7 @@ Real-time multiplayer · Stockfish analysis · Zero subscriptions.
 
 <br />
 
-<img src="docs/assets/board-preview.svg" width="300" alt="ChessKernel — starting position" />
+<img src="docs/assets/board-preview.svg" width="360" alt="ChessKernel — starting position" />
 
 <br />
 
