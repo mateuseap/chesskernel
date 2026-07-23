@@ -1,8 +1,14 @@
+import { lazy, Suspense } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Chessboard } from 'react-chessboard';
 import { useAuthStore } from '@/stores/auth.store';
 import { Zap, Bot, BarChart2, Trophy, Globe } from 'lucide-react';
+
+// The hero board is decorative; lazy-load react-chessboard so the landing
+// page does not ship the board library in its critical path.
+const Chessboard = lazy(() =>
+  import('react-chessboard').then((m) => ({ default: m.Chessboard })),
+);
 
 const STARTING_FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
 
@@ -70,18 +76,20 @@ export function HomePage() {
               className="absolute rounded-3xl opacity-20 blur-3xl"
               style={{ inset: -24, backgroundColor: 'hsl(var(--primary))' }}
             />
-            <Chessboard
-              position={STARTING_FEN}
-              arePiecesDraggable={false}
-              customDarkSquareStyle={{ backgroundColor: '#769656' }}
-              customLightSquareStyle={{ backgroundColor: '#eeeed2' }}
-              customBoardStyle={{
-                borderRadius: '10px',
-                boxShadow: '0 24px 64px rgba(0,0,0,0.45)',
-              }}
-              showBoardNotation={false}
-              animationDuration={0}
-            />
+            <Suspense fallback={<div className="rounded-[10px] bg-muted/40" style={{ width: 300, height: 300 }} />}>
+              <Chessboard
+                position={STARTING_FEN}
+                arePiecesDraggable={false}
+                customDarkSquareStyle={{ backgroundColor: '#769656' }}
+                customLightSquareStyle={{ backgroundColor: '#eeeed2' }}
+                customBoardStyle={{
+                  borderRadius: '10px',
+                  boxShadow: '0 24px 64px rgba(0,0,0,0.45)',
+                }}
+                showBoardNotation={false}
+                animationDuration={0}
+              />
+            </Suspense>
           </div>
         </div>
       </section>

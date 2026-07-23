@@ -61,8 +61,8 @@ export class BotsService {
       const result = await this.gameState.applyMove(gameId, from, to, promotion, incrementMs);
       if (!result) return null;
 
-      const game = await this.gamesService.getGame(gameId);
-      const moveCount = game.moves.length + 1;
+      const game = await this.gamesService.getGameCore(gameId);
+      const moveCount = game._count.moves + 1;
       const timeLeftMs = botColor === 'white' ? result.clock.white : result.clock.black;
 
       await this.gamesService.recordMove(

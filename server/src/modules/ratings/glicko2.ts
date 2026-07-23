@@ -29,7 +29,9 @@ function toGlicko2Scale(rating: number, rd: number): { mu: number; phi: number }
 function fromGlicko2Scale(mu: number, phi: number): { rating: number; ratingDeviation: number } {
   return {
     rating: Math.round(SCALE * mu + 1500),
-    ratingDeviation: Math.round(SCALE * phi),
+    // Keep RD fractional: rounding swallowed the small idle-period inflation
+    // (Glicko-2 phi* growth) and the column is a Float anyway.
+    ratingDeviation: SCALE * phi,
   };
 }
 

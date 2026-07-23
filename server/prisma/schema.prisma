@@ -135,6 +135,7 @@ model UserRating {
 
   @@unique([userId, timeControl])
   @@index([rating(sort: Desc)])
+  @@index([timeControl, rating(sort: Desc)])
   @@map("user_ratings")
 }
 
@@ -284,5 +285,6 @@ model RefreshToken {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+  @@index([tokenHash])
   @@map("refresh_tokens")
 }
