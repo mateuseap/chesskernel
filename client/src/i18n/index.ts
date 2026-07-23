@@ -14,4 +14,19 @@ i18n.use(initReactI18next).init({
   interpolation: { escapeValue: false },
 });
 
+/** Full BCP 47 tags for the html lang attribute. */
+const HTML_LANG: Record<string, string> = { en: 'en', pt: 'pt-BR', es: 'es' };
+
+/** Keeps tab title, meta description, and html lang in the active language. */
+function syncDocumentLanguage(language: string): void {
+  document.title = i18n.t('meta.title');
+  document
+    .querySelector('meta[name="description"]')
+    ?.setAttribute('content', i18n.t('meta.description'));
+  document.documentElement.lang = HTML_LANG[language] ?? language;
+}
+
+syncDocumentLanguage(lng);
+i18n.on('languageChanged', syncDocumentLanguage);
+
 export default i18n;

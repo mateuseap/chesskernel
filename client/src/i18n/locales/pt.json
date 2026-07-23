@@ -4,7 +4,9 @@
     "leaderboard": "Placar",
     "login": "Entrar",
     "signUp": "Cadastrar",
-    "logout": "Sair"
+    "logout": "Sair",
+    "language": "Mudar idioma",
+    "theme": "Alternar tema"
   },
   "home": {
     "tagline": "Código Aberto · Gratuito Para Sempre",
@@ -15,11 +17,26 @@
     "featuresTitle": "Tudo que você precisa para jogar xadrez",
     "featuresSubtitle": "Uma experiência completa sem assinaturas, sem anúncios, sem rastreamento.",
     "features": {
-      "realtime":  { "title": "Jogo em Tempo Real",  "desc": "Partidas ao vivo com lances instantâneos." },
-      "bots":      { "title": "vs Stockfish",         "desc": "Desafie o melhor motor de xadrez em qualquer nível." },
-      "analysis":  { "title": "Análise de Lances",    "desc": "Revisão automática com classificação de lances." },
-      "ladder":    { "title": "Classificação",        "desc": "Ratings separados para bullet, blitz, rapid e clássico." },
-      "multilang": { "title": "Multilíngue",          "desc": "Suporte completo para inglês, português e espanhol." }
+      "realtime": {
+        "title": "Jogo em Tempo Real",
+        "desc": "Partidas ao vivo com lances instantâneos."
+      },
+      "bots": {
+        "title": "vs Stockfish",
+        "desc": "Desafie o melhor motor de xadrez em qualquer nível."
+      },
+      "analysis": {
+        "title": "Análise de Lances",
+        "desc": "Revisão automática com classificação de lances."
+      },
+      "ladder": {
+        "title": "Classificação",
+        "desc": "Ratings separados para bullet, blitz, rapid e clássico."
+      },
+      "multilang": {
+        "title": "Multilíngue",
+        "desc": "Suporte completo para inglês, português e espanhol."
+      }
     }
   },
   "play": {
@@ -129,5 +146,9 @@
   "theme": {
     "light": "Claro",
     "dark": "Escuro"
+  },
+  "meta": {
+    "title": "ChessKernel: plataforma de xadrez gratuita e open source",
+    "description": "Jogue xadrez online do seu jeito: multiplayer em tempo real, análise com Stockfish e ratings Glicko-2. Gratuito, open source e auto-hospedável, sem anúncios ou assinaturas."
   }
 }
