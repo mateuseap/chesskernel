@@ -4,7 +4,9 @@
     "leaderboard": "Leaderboard",
     "login": "Log In",
     "signUp": "Sign Up",
-    "logout": "Log Out"
+    "logout": "Log Out",
+    "language": "Change language",
+    "theme": "Toggle theme"
   },
   "home": {
     "tagline": "Open Source · Free Forever",
@@ -15,11 +17,26 @@
     "featuresTitle": "Everything you need to play chess",
     "featuresSubtitle": "A full chess experience with no subscriptions, no ads, no tracking.",
     "features": {
-      "realtime":  { "title": "Real-time Play",   "desc": "Live games with instant moves. No delays, no lag." },
-      "bots":      { "title": "Play vs Stockfish", "desc": "Challenge the world's strongest engine at any difficulty." },
-      "analysis":  { "title": "Move Analysis",     "desc": "Automatic post-game review with move classifications." },
-      "ladder":    { "title": "Leaderboards",      "desc": "Separate ratings for bullet, blitz, rapid, and classical." },
-      "multilang": { "title": "Multilingual",      "desc": "Full support for English, Portuguese, and Spanish." }
+      "realtime": {
+        "title": "Real-time Play",
+        "desc": "Live games with instant moves. No delays, no lag."
+      },
+      "bots": {
+        "title": "Play vs Stockfish",
+        "desc": "Challenge the world's strongest engine at any difficulty."
+      },
+      "analysis": {
+        "title": "Move Analysis",
+        "desc": "Automatic post-game review with move classifications."
+      },
+      "ladder": {
+        "title": "Leaderboards",
+        "desc": "Separate ratings for bullet, blitz, rapid, and classical."
+      },
+      "multilang": {
+        "title": "Multilingual",
+        "desc": "Full support for English, Portuguese, and Spanish."
+      }
     }
   },
   "play": {
@@ -129,5 +146,9 @@
   "theme": {
     "light": "Light",
     "dark": "Dark"
+  },
+  "meta": {
+    "title": "ChessKernel: free, open-source chess platform",
+    "description": "Play chess online on your own terms: real-time multiplayer, Stockfish analysis, and Glicko-2 ratings. Free, open source, self-hostable, no ads or subscriptions."
   }
 }

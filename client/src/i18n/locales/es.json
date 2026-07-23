@@ -4,7 +4,9 @@
     "leaderboard": "Clasificación",
     "login": "Iniciar sesión",
     "signUp": "Registrarse",
-    "logout": "Cerrar sesión"
+    "logout": "Cerrar sesión",
+    "language": "Cambiar idioma",
+    "theme": "Cambiar tema"
   },
   "home": {
     "tagline": "Código Abierto · Gratuito Para Siempre",
@@ -15,11 +17,26 @@
     "featuresTitle": "Todo lo que necesitas para jugar ajedrez",
     "featuresSubtitle": "Una experiencia completa sin suscripciones, sin anuncios, sin rastreo.",
     "features": {
-      "realtime":  { "title": "Juego en Vivo",      "desc": "Partidas en directo con movimientos instantáneos." },
-      "bots":      { "title": "vs Stockfish",        "desc": "Desafía al mejor motor de ajedrez en cualquier nivel." },
-      "analysis":  { "title": "Análisis de Jugadas", "desc": "Revisión automática con clasificación de jugadas." },
-      "ladder":    { "title": "Clasificación",       "desc": "Ratings separados para bullet, blitz, rapid y clásico." },
-      "multilang": { "title": "Multilingüe",         "desc": "Soporte completo para inglés, portugués y español." }
+      "realtime": {
+        "title": "Juego en Vivo",
+        "desc": "Partidas en directo con movimientos instantáneos."
+      },
+      "bots": {
+        "title": "vs Stockfish",
+        "desc": "Desafía al mejor motor de ajedrez en cualquier nivel."
+      },
+      "analysis": {
+        "title": "Análisis de Jugadas",
+        "desc": "Revisión automática con clasificación de jugadas."
+      },
+      "ladder": {
+        "title": "Clasificación",
+        "desc": "Ratings separados para bullet, blitz, rapid y clásico."
+      },
+      "multilang": {
+        "title": "Multilingüe",
+        "desc": "Soporte completo para inglés, portugués y español."
+      }
     }
   },
   "play": {
@@ -129,5 +146,9 @@
   "theme": {
     "light": "Claro",
     "dark": "Oscuro"
+  },
+  "meta": {
+    "title": "ChessKernel: plataforma de ajedrez gratuita y de código abierto",
+    "description": "Juega al ajedrez online a tu manera: multijugador en tiempo real, análisis con Stockfish y puntuaciones Glicko-2. Gratis, de código abierto y autoalojable, sin anuncios ni suscripciones."
   }
 }
