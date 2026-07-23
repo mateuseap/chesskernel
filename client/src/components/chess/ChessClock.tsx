@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { cn } from '@/lib/utils';
 import type { Color } from '@chesskernel/shared';
 
@@ -66,15 +66,26 @@ export function ChessClock({
 }: ChessClockProps) {
   const [displayWhite, setDisplayWhite] = useState(whiteMs);
   const [displayBlack, setDisplayBlack] = useState(blackMs);
+  // Track the running clocks in refs so the 100ms tick only re-renders when
+  // the visible second actually changes (1 render/s instead of 10).
+  const whiteRef = useRef(whiteMs);
+  const blackRef = useRef(blackMs);
 
-  useEffect(() => { setDisplayWhite(whiteMs); }, [whiteMs]);
-  useEffect(() => { setDisplayBlack(blackMs); }, [blackMs]);
+  useEffect(() => { whiteRef.current = whiteMs; setDisplayWhite(whiteMs); }, [whiteMs]);
+  useEffect(() => { blackRef.current = blackMs; setDisplayBlack(blackMs); }, [blackMs]);
 
   useEffect(() => {
     if (!isGameActive) return;
+    const ref = activeColor === 'white' ? whiteRef : blackRef;
+    const setDisplay = activeColor === 'white' ? setDisplayWhite : setDisplayBlack;
     const iv = setInterval(() => {
-      if (activeColor === 'white') setDisplayWhite((p) => Math.max(0, p - 100));
-      else setDisplayBlack((p) => Math.max(0, p - 100));
+      ref.current = Math.max(0, ref.current - 100);
+      const next = ref.current;
+      setDisplay((prev) =>
+        Math.ceil(next / 1000) === Math.ceil(prev / 1000) && (next < 10_000) === (prev < 10_000)
+          ? prev
+          : next,
+      );
     }, 100);
     return () => clearInterval(iv);
   }, [activeColor, isGameActive]);

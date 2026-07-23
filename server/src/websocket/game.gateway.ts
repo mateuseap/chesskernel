@@ -86,7 +86,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     socket.join(`game:${payload.gameId}`);
 
     // Check if game already ended (reconnect after refresh)
-    const game = await this.gamesService.getGame(payload.gameId);
+    const game = await this.gamesService.getGameCore(payload.gameId);
     if (game.status === 'ended') {
       socket.emit('game:over', {
         result: game.result ?? 'draw',
@@ -125,7 +125,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
   ) {
     const userId = socket.data.userId as string;
 
-    const game = await this.gamesService.getGame(payload.gameId);
+    const game = await this.gamesService.getGameCore(payload.gameId);
     if (!game || game.status !== 'active') {
       socket.emit('error', { code: 'GAME_NOT_ACTIVE', message: 'Game is not active' });
       return;
@@ -159,7 +159,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
 
     const chess = new Chess(result.newFen);
-    const moveCount = game.moves.length + 1;
+    const moveCount = game._count.moves + 1;
     const timeLeftMs = playerColor === 'white' ? result.clock.white : result.clock.black;
 
     await this.gamesService.recordMove(
@@ -238,7 +238,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @MessageBody() payload: GameIdPayload,
   ) {
     const userId = socket.data.userId as string;
-    const game = await this.gamesService.getGame(payload.gameId);
+    const game = await this.gamesService.getGameCore(payload.gameId);
     if (!game || game.status !== 'active') return;
 
     const playerColor: 'white' | 'black' | null =
@@ -255,7 +255,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @MessageBody() payload: GameIdPayload,
   ) {
     const userId = socket.data.userId as string;
-    const game = await this.gamesService.getGame(payload.gameId);
+    const game = await this.gamesService.getGameCore(payload.gameId);
     if (!game || game.status !== 'active') return;
 
     const playerColor: 'white' | 'black' | null =
@@ -298,7 +298,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     if (matchResult) {
       const { gameId, whiteId, blackId } = matchResult;
-      const game = await this.gamesService.getGame(gameId);
+      const game = await this.gamesService.getGameCore(gameId);
 
       const whiteSocketRoom = `user:${whiteId}`;
       const blackSocketRoom = `user:${blackId}`;
@@ -358,9 +358,9 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       ? { white: state.whiteTimeMs, black: state.blackTimeMs, activeColor: state.activeColor, lastUpdatedAt: state.lastMoveAt }
       : prevClock;
 
-    const freshGame = await this.gamesService.getGame(gameId);
+    const freshGame = await this.gamesService.getGameCore(gameId);
     const timeLeftMs = botColor === 'white' ? (state?.whiteTimeMs ?? 0) : (state?.blackTimeMs ?? 0);
-    const moveCount = freshGame.moves.length;
+    const moveCount = freshGame._count.moves;
 
     const chess = new Chess(botResult.fen);
 
@@ -412,7 +412,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       termination as any,
     );
 
-    const game = await this.gamesService.getGame(gameId);
+    const game = await this.gamesService.getGameCore(gameId);
 
     this.server.to(`game:${gameId}`).emit('game:over', {
       result,

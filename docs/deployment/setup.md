@@ -227,3 +227,10 @@ PostgreSQL and Redis have built-in Compose healthchecks. The `server` container 
 - Sets 1-year immutable cache headers on static assets
 
 TLS is handled entirely by Caddy — Nginx only speaks plain HTTP on the internal Docker network.
+
+## Performance notes
+
+- Nginx gzips text assets and proxied JSON responses (level 5, min 1 KB), keeping compression off the Node event loop
+- The client build code-splits vendor, board, chess-logic, i18n, and UI chunks; heavy pages (analysis, play) are lazy-loaded routes
+- Database indexes back the two hottest lookups: refresh-token validation and the leaderboard (timeControl, rating DESC) query
+- Socket handlers read game state through a trimmed core selection (no full move list per event)

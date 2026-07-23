@@ -13,6 +13,14 @@ export class LeaderboardsService {
   ) {}
 
   async getLeaderboard(timeControl: TimeControl, page = 1, limit = 50) {
+    const cacheKey = `leaderboard:${timeControl}:${page}:${limit}`;
+    try {
+      const cached = await this.redis.get(cacheKey);
+      if (cached) return JSON.parse(cached);
+    } catch {
+      // Cache miss path below is always safe; ignore Redis read errors.
+    }
+
     const skip = (page - 1) * limit;
 
     const [entries, total] = await Promise.all([
@@ -40,7 +48,15 @@ export class LeaderboardsService {
       gamesPlayed: entry.gamesPlayed,
     }));
 
-    return { entries: ranked, total, page, limit, totalPages: Math.ceil(total / limit) };
+    const result = { entries: ranked, total, page, limit, totalPages: Math.ceil(total / limit) };
+
+    try {
+      await this.redis.set(cacheKey, JSON.stringify(result), LEADERBOARD_CACHE_TTL);
+    } catch {
+      // Serving the uncached result is fine; ignore Redis write errors.
+    }
+
+    return result;
   }
 
   async getUserRank(userId: string, timeControl: TimeControl): Promise<number | null> {

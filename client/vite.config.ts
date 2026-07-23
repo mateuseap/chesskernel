@@ -31,7 +31,9 @@ export default defineConfig({
         manualChunks: {
           vendor: ['react', 'react-dom', 'react-router-dom'],
           chess: ['chess.js'],
+          board: ['react-chessboard'],
           socket: ['socket.io-client'],
+          i18n: ['i18next', 'react-i18next'],
           ui: ['framer-motion', 'lucide-react'],
         },
       },

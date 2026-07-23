@@ -64,6 +64,39 @@ export class GamesService {
     return game;
   }
 
+  /**
+   * Slim game lookup for hot paths (every move, resign, draw, spectate).
+   * Unlike getGame it does not load the full move list; it fetches only the
+   * scalar fields plus a move count, which keeps per-move DB work constant
+   * instead of growing with game length.
+   */
+  async getGameCore(gameId: string) {
+    const game = await this.prisma.game.findUnique({
+      where: { id: gameId },
+      select: {
+        id: true,
+        status: true,
+        result: true,
+        termination: true,
+        pgn: true,
+        whiteId: true,
+        blackId: true,
+        timeControl: true,
+        initialTimeMs: true,
+        incrementMs: true,
+        isBotGame: true,
+        botDifficulty: true,
+        whiteRatingBefore: true,
+        blackRatingBefore: true,
+        white: { select: { id: true, username: true, avatarUrl: true } },
+        black: { select: { id: true, username: true, avatarUrl: true } },
+        _count: { select: { moves: true } },
+      },
+    });
+    if (!game) throw new NotFoundException(`Game ${gameId} not found`);
+    return game;
+  }
+
   async getUserGames(userId: string, page = 1, limit = 20) {
     const skip = (page - 1) * limit;
     const [games, total] = await Promise.all([
