@@ -44,6 +44,30 @@ Chess platforms today lock features behind subscriptions, harvest your game data
 | 🌍 **Multilingual** | English, Portuguese, and Spanish |
 | 🐳 **Docker-first** | One command to run the entire stack |
 
+## Architecture
+
+A React client served by nginx, which reverse-proxies the API and the realtime socket to a NestJS server. The server holds authoritative game state, drives Stockfish for analysis and bots, persists to PostgreSQL, and uses Redis for caching and pub/sub.
+
+```mermaid
+flowchart LR
+    browser(["browser: React client"])
+    nginx["nginx<br/>static assets + /api and /socket.io proxy"]
+    server["NestJS server :3001<br/>authoritative games, Socket.IO"]
+    stockfish["Stockfish<br/>analysis and bots"]
+    postgres[("PostgreSQL<br/>users, games, ratings")]
+    redis[("Redis<br/>cache + pub/sub")]
+
+    browser -->|HTTPS static| nginx
+    browser <-->|/api REST| nginx
+    browser <-->|/socket.io WebSocket| nginx
+    nginx <--> server
+    server --> stockfish
+    server --> postgres
+    server --> redis
+```
+
+Moves are validated server-side with chess.js; ratings use Glicko-2. See [docs/architecture](docs/architecture/overview.md) and [docs/backend](docs/backend/backend-architecture.md) for the full design.
+
 ## Quick Start
 
 ```bash
