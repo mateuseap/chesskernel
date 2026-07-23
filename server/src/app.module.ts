@@ -14,6 +14,7 @@ import { InvitationsModule } from './modules/invitations/invitations.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { LeaderboardsModule } from './modules/leaderboards/leaderboards.module';
 import { WebSocketGatewayModule } from './websocket/websocket.module';
+import { MetricsModule } from './metrics/metrics.module';
 import appConfig from './config/app.config';
 import databaseConfig from './config/database.config';
 import jwtConfig from './config/jwt.config';
@@ -29,6 +30,7 @@ import redisConfig from './config/redis.config';
     ScheduleModule.forRoot(),
     DatabaseModule,
     WebSocketGatewayModule,
+    MetricsModule,
     AuthModule,
     UsersModule,
     GamesModule,
