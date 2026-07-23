@@ -149,6 +149,6 @@ sequenceDiagram
 
 ## i18n
 
-Supported locales: `en`, `pt`, `es`. Locale is stored in localStorage and applied on mount. All user-visible strings must use `t('namespace.key')` — never hardcode text in JSX.
+Supported locales: `en`, `pt`, `es`. Locale is stored in localStorage and applied on mount. All user-visible strings must use `t('namespace.key')`; never hardcode text in JSX.
 
 Translation files live at `client/src/i18n/locales/{locale}.json`.

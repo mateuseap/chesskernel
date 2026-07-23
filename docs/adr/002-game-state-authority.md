@@ -25,7 +25,7 @@ The server manages both clocks. Clock state is stored in Redis with millisecond 
 
 ## Consequences
 
-- Every move requires a round-trip — no purely local game progression
+- Every move requires a round-trip, with no purely local game progression
 - Server must handle move validation at WebSocket message rate
 - Reconnecting clients receive full game state from Redis/DB
 - Spectators see the same authoritative state as players

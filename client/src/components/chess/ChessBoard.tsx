@@ -17,7 +17,7 @@ const CLS: Record<string, { bg: string; text: string; icon: string; sqColor: str
   miss:       { bg: '#ca3431', text: '#fff', icon: '×',   sqColor: 'rgba(202,52,49,0.45)' },
 };
 
-// Standalone classification badge — its own SVG overlay, independent of arrows
+// Standalone classification badge: its own SVG overlay, independent of arrows
 function ClassificationBadge({
   square, cls, orientation,
 }: {
@@ -277,7 +277,7 @@ export function ChessBoard({
     return `${'abcdefgh'[col]}${row + 1}`;
   }, [orientation]);
 
-  // Right-click arrow drawing — capture phase so react-chessboard doesn't see right-clicks
+  // Right-click arrow drawing: capture phase so react-chessboard doesn't see right-clicks
   useEffect(() => {
     const el = boardRef.current;
     if (!el) return;
@@ -408,7 +408,7 @@ export function ChessBoard({
         orientation={orientation}
       />
 
-      {/* Classification badge — standalone SVG, not coupled to arrows */}
+      {/* Classification badge: standalone SVG, not coupled to arrows */}
       {lastMove?.to && moveClassification && (
         <ClassificationBadge
           square={lastMove.to}

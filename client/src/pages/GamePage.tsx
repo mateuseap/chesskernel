@@ -112,7 +112,7 @@ export function GamePage() {
   }, [gameId, chess, applyMoveOptimistic, revertOptimistic, triggerIllegalFlash]);
 
   // When king is selected and user clicks/drops on own rook, remap to castling destination.
-  // chess.com supports this "king captures rook" convention; chess.js does not — we handle it.
+  // chess.com supports this "king captures rook" convention; chess.js does not, so we handle it.
   const resolveCastleTarget = useCallback((from: Sq, to: Sq): Sq => {
     const movingPiece = chess.get(from as Square);
     const targetPiece = chess.get(to as Square);

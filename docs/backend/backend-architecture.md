@@ -4,7 +4,7 @@
 
 ```
 server/src/
-├── app.module.ts          # Root module — wires everything together
+├── app.module.ts          # Root module: wires everything together
 ├── main.ts                # Bootstrap: NestJS app, Prisma hooks, validation pipe
 ├── common/                # Guards, decorators, interceptors, filters
 │   ├── guards/            # JwtAuthGuard, WsAuthGuard
@@ -110,7 +110,7 @@ stateDiagram-v2
     ABANDONED --> [*]
 ```
 
-Active game state is cached in Redis (`game:{id}`) for O(1) reconnect. PostgreSQL is authoritative — Redis is repopulated from DB on cache miss.
+Active game state is cached in Redis (`game:{id}`) for O(1) reconnect. PostgreSQL is authoritative; Redis is repopulated from DB on cache miss.
 
 ## Matchmaking
 
@@ -153,10 +153,10 @@ Move classification thresholds (centipawn eval drop from best move):
 | Classification | CP Drop |
 |----------------|---------|
 | Brilliant | sub-optimal but tactically sharp (heuristic) |
-| Best / Excellent | 0–10 |
-| Good | 10–25 |
-| Inaccuracy | 25–100 |
-| Mistake | 100–300 |
+| Best / Excellent | 0-10 |
+| Good | 10-25 |
+| Inaccuracy | 25-100 |
+| Mistake | 100-300 |
 | Blunder | >300 |
 | Book | matches opening book |
 
