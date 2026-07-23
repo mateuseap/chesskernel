@@ -1,6 +1,6 @@
 <div align="center">
 
-# ♟ ChessKernel
+# ♟️ ChessKernel
 
 **The open-source chess platform you actually control.**  
 Real-time multiplayer · Stockfish analysis · Zero subscriptions.
