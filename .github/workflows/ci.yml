@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [main, develop]
 
+# Least privilege: CI only needs to read the repository contents.
+permissions:
+  contents: read
+
 jobs:
   typecheck:
     name: Type Check
