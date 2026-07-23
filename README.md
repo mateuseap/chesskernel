@@ -13,7 +13,7 @@ Real-time multiplayer · Stockfish analysis · Zero subscriptions.
 
 <br />
 
-<img src="docs/assets/board-preview.svg" width="360" alt="ChessKernel — starting position" />
+<img src="docs/assets/board-preview.svg" width="360" alt="ChessKernel starting position" />
 
 <br />
 
@@ -23,7 +23,7 @@ Real-time multiplayer · Stockfish analysis · Zero subscriptions.
 
 ## Why ChessKernel?
 
-Chess platforms today lock features behind subscriptions, harvest your game data, and push ads on free users. ChessKernel is different — it runs entirely on your own server, gives every user the full experience for free, and keeps your games in a database you control.
+Chess platforms today lock features behind subscriptions, harvest your game data, and push ads on free users. ChessKernel is different: it runs entirely on your own server, gives every user the full experience for free, and keeps your games in a database you control.
 
 - **No subscriptions.** Every feature is available to every user.
 - **No ads, no tracking.** Your games belong to you.
@@ -51,7 +51,7 @@ cp .env.example .env          # fill in your secrets
 docker compose -f docker/docker-compose.prod.yml up -d
 ```
 
-Open `http://localhost` — that's it.
+Open `http://localhost` and that's it.
 
 > Full configuration options, environment variables, and development setup: [docs/deployment/setup.md](docs/deployment/setup.md)
 
@@ -86,4 +86,4 @@ Read [CONTRIBUTING.md](CONTRIBUTING.md) and [docs/development/git-workflow.md](d
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+MIT, see [LICENSE](LICENSE).
