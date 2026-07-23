@@ -1,5 +1,6 @@
 import { Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
 import { spawn, ChildProcess } from 'child_process';
+import { stockfishDuration, stockfishRunning } from '../../metrics/metrics';
 import { join } from 'path';
 import { existsSync } from 'fs';
 
@@ -39,7 +40,7 @@ export class StockfishService implements OnModuleDestroy {
   }
 
   async evaluatePosition(fen: string, depth = 18): Promise<StockfishResult> {
-    return new Promise((resolve, reject) => {
+    return this.timed('evaluate', () => new Promise((resolve, reject) => {
       let process: ChildProcess;
       try {
         process = spawn(this.findStockfish(), [], { stdio: 'pipe' });
@@ -103,7 +104,19 @@ export class StockfishService implements OnModuleDestroy {
       ].join('\n') + '\n';
 
       process.stdin?.write(commands);
-    });
+    }));
+  }
+
+  /** Tracks in-flight count and duration of every engine call. */
+  private async timed<T>(op: string, run: () => Promise<T>): Promise<T> {
+    stockfishRunning.inc();
+    const stop = stockfishDuration.startTimer({ op });
+    try {
+      return await run();
+    } finally {
+      stop();
+      stockfishRunning.dec();
+    }
   }
 
   async getBestMove(
@@ -112,7 +125,7 @@ export class StockfishService implements OnModuleDestroy {
     moveTimeMs: number,
     depth?: number,
   ): Promise<string> {
-    return new Promise((resolve, reject) => {
+    return this.timed('bestmove', () => new Promise((resolve, reject) => {
       let process: ChildProcess;
       try {
         process = spawn(this.findStockfish(), [], { stdio: 'pipe' });
@@ -165,6 +178,6 @@ export class StockfishService implements OnModuleDestroy {
       ].join('\n') + '\n';
 
       process.stdin?.write(commands);
-    });
+    }));
   }
 }

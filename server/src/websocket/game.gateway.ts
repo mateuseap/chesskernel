@@ -7,6 +7,7 @@ import {
   ConnectedSocket,
   MessageBody,
 } from '@nestjs/websockets';
+import { socketConnections } from '../metrics/metrics';
 import { UseGuards, Logger } from '@nestjs/common';
 import { Server, Socket } from 'socket.io';
 import { JwtService } from '@nestjs/jwt';
@@ -45,6 +46,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
   ) {}
 
   async handleConnection(socket: Socket) {
+    socketConnections.inc();
     const token = socket.handshake.auth?.token as string | undefined;
     if (!token) {
       socket.disconnect(true);
@@ -65,6 +67,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   async handleDisconnect(socket: Socket) {
+    socketConnections.dec();
     const userId = socket.data.userId as string | undefined;
     if (!userId) return;
 

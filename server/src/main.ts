@@ -13,7 +13,7 @@ async function bootstrap() {
   const port = configService.get<number>('PORT', 3001);
   const clientOrigin = configService.get<string>('CLIENT_ORIGIN', 'http://localhost:5173');
 
-  app.setGlobalPrefix('api');
+  app.setGlobalPrefix('api', { exclude: ['metrics'] }); // /metrics is cluster-internal (not proxied by nginx)
 
   app.enableCors({
     origin: clientOrigin,
