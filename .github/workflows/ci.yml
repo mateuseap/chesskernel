@@ -24,6 +24,24 @@ jobs:
       - run: pnpm --filter server db:generate
       - run: pnpm typecheck
 
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    needs: typecheck
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+      - run: pnpm install --frozen-lockfile
+      # shared must be built so ts-jest can resolve @chesskernel/shared types
+      - run: pnpm --filter shared build
+      - run: pnpm --filter server db:generate
+      # runs client (vitest) then server (jest) suites
+      - run: pnpm test
+
   build:
     name: Build
     runs-on: ubuntu-latest
