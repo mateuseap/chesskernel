@@ -1,6 +1,6 @@
 #!/bin/sh
 set -e
 echo "[entrypoint] Running database migrations..."
-npx prisma migrate deploy
+./node_modules/.bin/prisma migrate deploy
 echo "[entrypoint] Starting server..."
 exec node dist/main.js
