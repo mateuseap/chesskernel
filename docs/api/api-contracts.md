@@ -34,7 +34,7 @@ Create a new account.
 ```json
 { "email": "alice@example.com", "password": "s3cr3t!" }
 ```
-**Response 200** — same shape as register.
+**Response 200**: same shape as register.
 
 ---
 
@@ -45,14 +45,14 @@ Rotate token pair. Send current refresh token.
 ```json
 { "refreshToken": "<opaque>" }
 ```
-**Response 200** — new `accessToken` + `refreshToken`.
+**Response 200**: new `accessToken` + `refreshToken`.
 
 ---
 
 ### `POST /auth/logout` 🔒
 Revoke current refresh token.
 
-**Response 204** — no body.
+**Response 204**: no body.
 
 ---
 
@@ -98,7 +98,7 @@ Update own profile.
 ```json
 { "bio": "Chess enthusiast", "avatarUrl": "https://...", "country": "BR" }
 ```
-**Response 200** — updated user object.
+**Response 200**: updated user object.
 
 ---
 
@@ -256,14 +256,14 @@ Send a friend request.
 ```json
 { "username": "bob" }
 ```
-**Response 201** — friendship record.
+**Response 201**: friendship record.
 
 ---
 
 ### `POST /friends/:id/accept` 🔒
 Accept a pending request.
 
-**Response 200** — updated friendship.
+**Response 200**: updated friendship.
 
 ---
 
@@ -296,7 +296,7 @@ Create an open invite (generates a shareable token).
 ---
 
 ### `GET /invitations/:token`
-Get invite details (public — no auth required).
+Get invite details (public, no auth required).
 
 ---
 
@@ -380,7 +380,7 @@ io('https://<host>', { auth: { token: '<access_token>' } })
 
 | Event | Payload | Description |
 |-------|---------|-------------|
-| `queue:matched` | `{ gameId }` | Match found — navigate to game |
+| `queue:matched` | `{ gameId }` | Match found, navigate to game |
 | `game:start` | `{ gameId, white, black, timeControl, ... }` | Game started |
 | `game:move:broadcast` | `{ move, fen, clock }` | Opponent played a move |
 | `game:move:rejected` | `{ reason }` | Server rejected your move |

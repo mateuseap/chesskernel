@@ -11,15 +11,15 @@ Thank you for considering a contribution!
 ## What to Work On
 
 - Check open [GitHub Issues](https://github.com/mateuseap/chesskernel/issues).
-- Feature requests are welcome — open an issue to discuss before implementing.
+- Feature requests are welcome: open an issue to discuss before implementing.
 - Bug reports: please include steps to reproduce, expected vs. actual behaviour, and browser/OS.
 
 ## Code Style
 
-- TypeScript strict mode — no `any` unless absolutely necessary.
+- TypeScript strict mode, no `any` unless absolutely necessary.
 - No `console.log` in production paths.
 - Keep files under 800 lines; prefer many focused modules.
-- No mutation — use spread / immutable patterns.
+- No mutation: use spread / immutable patterns.
 - Conventional Commits format for all commit messages.
 
 ## Pull Request Process

@@ -100,7 +100,7 @@ Before requesting review:
 1. Ensure `develop` is stable and CI is green.
 2. Open a PR: `develop → main` titled `release: vX.Y.Z`.
 3. PR body: summary of all changes since last release (use `git log main..develop --oneline`).
-4. Merge the PR (merge commit — preserves history).
+4. Merge the PR (merge commit, preserves history).
 5. Tag the merge commit on `main`:
 
 ```bash
@@ -109,7 +109,7 @@ git tag -a v0.2.0 -m "release: v0.2.0"
 git push origin v0.2.0
 ```
 
-6. Create a GitHub Release from the tag — paste the changelog.
+6. Create a GitHub Release from the tag, then paste the changelog.
 
 ### Versioning (Semantic Versioning)
 

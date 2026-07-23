@@ -33,10 +33,10 @@ flowchart TD
 
 ### Properties
 
-- Access tokens are short-lived (15 min) — exposure window is small
-- Refresh tokens are opaque bytes, stored as SHA-256 hashes — DB breach does not leak raw tokens
-- Refresh token rotation on every use — stolen tokens are detected on next legitimate use
-- Logout revokes the refresh token — forces re-authentication
+- Access tokens are short-lived (15 min), so the exposure window is small
+- Refresh tokens are opaque bytes, stored as SHA-256 hashes, so a DB breach does not leak raw tokens
+- Refresh token rotation on every use, so stolen tokens are detected on next legitimate use
+- Logout revokes the refresh token, which forces re-authentication
 
 ## Move Validation
 
@@ -50,7 +50,7 @@ flowchart LR
     Valid -- no --> Reject["Emit error to sender\nno state change"]
 ```
 
-Illegal moves are rejected silently to the room — only the sender receives an error event. This prevents information leakage about the server's game state.
+Illegal moves are rejected silently to the room; only the sender receives an error event. This prevents information leakage about the server's game state.
 
 ## WebSocket Authorization
 
@@ -61,7 +61,7 @@ Every WebSocket connection is authenticated via `WsAuthGuard`:
 3. User identity is attached to the socket for all subsequent events
 4. Each handler checks that the acting user is a participant in the referenced game
 
-Room joining is controlled server-side — clients cannot self-subscribe to arbitrary rooms.
+Room joining is controlled server-side; clients cannot self-subscribe to arbitrary rooms.
 
 ## Input Validation
 
@@ -73,7 +73,7 @@ WebSocket event payloads are manually validated in gateway handlers.
 
 | Field | Constraint |
 |-------|-----------|
-| username | 3–30 chars, alphanumeric + underscore |
+| username | 3-30 chars, alphanumeric + underscore |
 | email | valid RFC email |
 | password | min 8 chars |
 | move.from / move.to | square regex `[a-h][1-8]` |
@@ -127,4 +127,4 @@ add_header Content-Security-Policy "default-src 'self'; ...";
 | Email verification | Schema supports it; flow not yet implemented |
 | 2FA | Not implemented |
 | Stockfish process isolation | Runs as app user; sandboxing (e.g. seccomp) not applied |
-| Account rate limiting (per user, not IP) | Not implemented — relies on IP limits only |
+| Account rate limiting (per user, not IP) | Not implemented, relies on IP limits only |

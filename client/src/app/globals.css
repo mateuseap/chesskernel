@@ -4,7 +4,7 @@
 
 @layer base {
   :root {
-    /* Light — warm cream, chess.com-inspired */
+    /* Light: warm cream, chess.com-inspired */
     --background: 40 25% 93%;
     --foreground: 225 25% 13%;
     --card: 0 0% 100%;
@@ -28,7 +28,7 @@
   }
 
   .dark {
-    /* Dark — deep navy, chess.com dark-inspired */
+    /* Dark: deep navy, chess.com dark-inspired */
     --background: 225 16% 12%;
     --foreground: 220 14% 90%;
     --card: 224 16% 17%;
@@ -70,7 +70,7 @@
   }
 }
 
-/* Illegal move — chess.com-style shake + red glow */
+/* Illegal move: chess.com-style shake + red glow */
 @keyframes illegal-shake {
   0%   { transform: translateX(0); }
   14%  { transform: translateX(-6px); }
@@ -99,7 +99,7 @@
   100% { opacity: 0; }
 }
 
-/* Feature carousel — infinite horizontal scroll, pauses on hover */
+/* Feature carousel: infinite horizontal scroll, pauses on hover */
 @keyframes carousel-scroll {
   from { transform: translateX(0); }
   to   { transform: translateX(-50%); }

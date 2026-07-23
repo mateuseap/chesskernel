@@ -1,4 +1,4 @@
-// Cburnett chess pieces (CC BY-SA 3.0, Wikimedia) — same set as react-chessboard.
+// Cburnett chess pieces (CC BY-SA 3.0, Wikimedia), same set as react-chessboard.
 // Extracted from the react-chessboard bundle and rendered as inline SVG at any size.
 
 type PieceType = 'p' | 'n' | 'b' | 'r' | 'q';

@@ -3,7 +3,7 @@ import { PieceIcon } from './PieceIcon';
 const PIECE_VALUES: Record<string, number> = { p: 1, n: 3, b: 3, r: 5, q: 9 };
 const STARTING: Record<string, number>     = { p: 8, n: 2, b: 2, r: 2, q: 1 };
 
-// Highest-value pieces first — chess.com display order
+// Highest-value pieces first, chess.com display order
 const ORDER = ['q', 'r', 'b', 'n', 'p'] as const;
 
 export interface MaterialInfo {

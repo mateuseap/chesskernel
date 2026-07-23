@@ -6,7 +6,7 @@
 graph TD
     Internet["Internet\n(port 80 / 443)"]
     Caddy["Caddy\n(TLS termination)\nauto Let's Encrypt"]
-    Client["client container\nNginx — React SPA\n+ API proxy"]
+    Client["client container\nNginx, React SPA\n+ API proxy"]
     Server["server container\nNestJS API\n(port 3001 internal)"]
     PG["postgres container\nPostgreSQL 16"]
     Redis["redis container\nRedis 7"]
@@ -38,7 +38,7 @@ All services run inside Docker and communicate on a private network. Only Caddy 
 | Docker Compose | 2.x |
 | Domain | A record pointing to your server IP |
 
-Stockfish is installed inside the `server` container via `apk add stockfish` — no host install needed.
+Stockfish is installed inside the `server` container via `apk add stockfish`, no host install needed.
 
 ---
 
@@ -68,7 +68,7 @@ cd chesskernel
 cp .env.example .env
 ```
 
-Edit `.env` — replace every placeholder value:
+Edit `.env` and replace every placeholder value:
 
 ```env
 POSTGRES_USER=chesskernel
@@ -125,21 +125,21 @@ Migrations run automatically on server start.
 
 | Variable | Required | Default | Description |
 |----------|----------|---------|-------------|
-| `POSTGRES_USER` | Yes | — | PostgreSQL username |
-| `POSTGRES_PASSWORD` | Yes | — | PostgreSQL password |
-| `POSTGRES_DB` | Yes | — | PostgreSQL database name |
-| `REDIS_PASSWORD` | Yes | — | Redis auth password |
-| `JWT_SECRET` | Yes | — | Access token signing key (64+ hex chars) |
+| `POSTGRES_USER` | Yes | - | PostgreSQL username |
+| `POSTGRES_PASSWORD` | Yes | - | PostgreSQL password |
+| `POSTGRES_DB` | Yes | - | PostgreSQL database name |
+| `REDIS_PASSWORD` | Yes | - | Redis auth password |
+| `JWT_SECRET` | Yes | - | Access token signing key (64+ hex chars) |
 | `JWT_ACCESS_EXPIRES_IN` | No | `15m` | Access token TTL |
 | `JWT_REFRESH_EXPIRES_IN` | No | `7d` | Refresh token TTL |
-| `CLIENT_ORIGIN` | Yes | — | Allowed CORS origin — must match your public URL |
-| `DOMAIN` | Yes | — | Public domain (used by Caddy for TLS cert) |
+| `CLIENT_ORIGIN` | Yes | - | Allowed CORS origin, must match your public URL |
+| `DOMAIN` | Yes | - | Public domain (used by Caddy for TLS cert) |
 
 ---
 
 ## Custom Stockfish Binary
 
-The server image installs Stockfish via Alpine's package manager. To use a newer binary, place it at `server/bin/stockfish` — the container mounts this directory at `/app/bin/` and checks it first before the system path.
+The server image installs Stockfish via Alpine's package manager. To use a newer binary, place it at `server/bin/stockfish`, and the container mounts this directory at `/app/bin/` and checks it first before the system path.
 
 ```bash
 wget https://... -O server/bin/stockfish
@@ -165,7 +165,7 @@ pnpm --filter server db:migrate
 pnpm dev
 ```
 
-Frontend: `http://localhost:5173` — Backend: `http://localhost:3001`
+Frontend: `http://localhost:5173`, Backend: `http://localhost:3001`
 
 For local analysis, install Stockfish on the host:
 ```bash
@@ -226,7 +226,7 @@ PostgreSQL and Redis have built-in Compose healthchecks. The `server` container 
 - Rate-limits `/api/auth/*` to 5 req/min per IP (brute-force protection)
 - Sets 1-year immutable cache headers on static assets
 
-TLS is handled entirely by Caddy — Nginx only speaks plain HTTP on the internal Docker network.
+TLS is handled entirely by Caddy; Nginx only speaks plain HTTP on the internal Docker network.
 
 ## Performance notes
 

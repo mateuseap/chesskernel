@@ -11,7 +11,7 @@ ChessKernel must be fully self-hosted with no paid third-party dependencies. The
 
 ### Backend: NestJS over Express/Fastify
 
-NestJS provides dependency injection, module isolation, built-in WebSocket gateway, Swagger integration, and class-validator — all of which map directly to our feature set. The structure enforces the modular architecture we require.
+NestJS provides dependency injection, module isolation, built-in WebSocket gateway, Swagger integration, and class-validator, all of which map directly to our feature set. The structure enforces the modular architecture we require.
 
 ### ORM: Prisma over TypeORM/Drizzle
 
@@ -19,7 +19,7 @@ Prisma's type-safe client, excellent migration tooling, and schema-first approac
 
 ### Realtime: Socket.IO over raw WebSocket
 
-Socket.IO provides rooms, namespaces, automatic reconnection, and a Redis adapter for horizontal scaling — all needed without additional infrastructure.
+Socket.IO provides rooms, namespaces, automatic reconnection, and a Redis adapter for horizontal scaling, all needed without additional infrastructure.
 
 ### Chess Rules: chess.js (no alternatives)
 

@@ -70,7 +70,7 @@ export function HomePage() {
             </div>
           </div>
 
-          {/* Chess board — real piece images via react-chessboard */}
+          {/* Chess board: real piece images via react-chessboard */}
           <div className="shrink-0 relative" style={{ pointerEvents: 'none', userSelect: 'none', width: 300 }}>
             <div
               className="absolute rounded-3xl opacity-20 blur-3xl"
@@ -94,7 +94,7 @@ export function HomePage() {
         </div>
       </section>
 
-      {/* Features — infinite-scroll carousel, pauses on hover */}
+      {/* Features: infinite-scroll carousel, pauses on hover */}
       <section className="py-20 border-t border-border">
         <div className="px-4 max-w-5xl mx-auto text-center mb-12">
           <h2 className="text-3xl font-black tracking-tight mb-3">{t('home.featuresTitle')}</h2>

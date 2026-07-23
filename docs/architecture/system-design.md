@@ -41,7 +41,7 @@ ZADD matchmaking:{timeControl} {rating} {userId}
 ```
 
 - One sorted set per time control (bullet_1_0, blitz_3_2, rapid_10_0, etc.)
-- Rating is the Z-score — enables O(log n) range queries
+- Rating is the Z-score, which enables O(log n) range queries
 - Polling interval: 500ms worker checks for compatible players
 
 ### Match Algorithm
@@ -141,10 +141,10 @@ Move classification thresholds (centipawn drop from best move):
 | Classification | CP Drop |
 |----------------|---------|
 | Brilliant | engine says sub-optimal but tactically sharp |
-| Best / Excellent | 0–10 |
-| Good | 10–25 |
-| Inaccuracy | 25–100 |
-| Mistake | 100–300 |
+| Best / Excellent | 0-10 |
+| Good | 10-25 |
+| Inaccuracy | 25-100 |
+| Mistake | 100-300 |
 | Blunder | >300 |
 | Book | matches opening book |
 
@@ -152,15 +152,15 @@ Move classification thresholds (centipawn drop from best move):
 
 ### Namespaces
 
-- `/game` — active game events
-- `/matchmaking` — queue and match events
-- `/notifications` — friend requests, invitations, alerts
+- `/game`: active game events
+- `/matchmaking`: queue and match events
+- `/notifications`: friend requests, invitations, alerts
 
 ### Room Structure
 
-- `game:{gameId}` — players and spectators of a game
-- `user:{userId}` — private user channel
-- `leaderboard` — live leaderboard updates
+- `game:{gameId}`: players and spectators of a game
+- `user:{userId}`: private user channel
+- `leaderboard`: live leaderboard updates
 
 ### Key Events
 
@@ -183,7 +183,7 @@ Move classification thresholds (centipawn drop from best move):
 | `game:{id}:state` | Hash | 2h | Active game FEN + clocks |
 | `game:{id}:players` | Hash | 2h | Player socket IDs |
 | `user:{id}:session` | String | 7d | JWT refresh token |
-| `matchmaking:{tc}` | ZSet | — | Matchmaking queue |
+| `matchmaking:{tc}` | ZSet | - | Matchmaking queue |
 | `leaderboard:{tc}` | ZSet | 5m | Cached ranking |
 | `user:{id}:online` | String | 30s | Online presence (heartbeat) |
 

@@ -102,7 +102,7 @@ function EvalBar({ cp, mate }: { cp: number | null; mate: number | null }) {
         }}
       />
 
-      {/* Score — vertical text, pinned to the far end of the winning colour */}
+      {/* Score: vertical text, pinned to the far end of the winning colour */}
       <div
         className="absolute left-0 right-0 flex justify-center items-center pointer-events-none z-10"
         style={whiteWinning ? { bottom: 5 } : { top: 5 }}
@@ -266,7 +266,7 @@ export function AnalysisPage() {
         </button>
         <div className="min-w-0">
           <h1 className="font-bold text-lg leading-tight truncate">{white} vs {black}</h1>
-          <p className="text-xs text-muted-foreground">{game.result ?? '—'} · {game.timeControl ?? t('analysis.title')}</p>
+          <p className="text-xs text-muted-foreground">{game.result ?? '-'} · {game.timeControl ?? t('analysis.title')}</p>
         </div>
       </div>
 
@@ -408,7 +408,7 @@ export function AnalysisPage() {
             </div>
           </div>
 
-          {/* Move list — chess.com style */}
+          {/* Move list: chess.com style */}
           <div className="bg-card border border-border rounded-xl overflow-hidden">
             <div className="px-4 py-2.5 border-b border-border bg-muted/30 flex items-center gap-2">
               <span className="font-semibold text-sm">{t('analysis.moves')}</span>
