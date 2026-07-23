@@ -7,9 +7,9 @@ Real-time multiplayer · Stockfish analysis · Zero subscriptions.
 
 [![CI](https://github.com/mateuseap/chesskernel/actions/workflows/ci.yml/badge.svg)](https://github.com/mateuseap/chesskernel/actions)
 [![Publish Images](https://github.com/mateuseap/chesskernel/actions/workflows/publish-images.yml/badge.svg)](https://github.com/mateuseap/chesskernel/actions)
-[![version](https://img.shields.io/github/v/tag/mateuseap/chesskernel?sort=semver&style=flat-square&label=version&color=96bc4b)](https://github.com/mateuseap/chesskernel/releases)
-[![license](https://img.shields.io/github/license/mateuseap/chesskernel?style=flat-square&color=5ba3b0)](LICENSE)
-[![stars](https://img.shields.io/github/stars/mateuseap/chesskernel?style=flat-square)](https://github.com/mateuseap/chesskernel/stargazers)
+[![version](https://badgen.net/github/tag/mateuseap/chesskernel?label=version&color=96bc4b)](https://github.com/mateuseap/chesskernel/releases)
+[![license](https://badgen.net/github/license/mateuseap/chesskernel?color=5ba3b0)](LICENSE)
+[![stars](https://badgen.net/github/stars/mateuseap/chesskernel)](https://github.com/mateuseap/chesskernel/stargazers)
 [![visitors](https://visitor-badge.laobi.icu/badge?page_id=mateuseap.chesskernel)](https://github.com/mateuseap/chesskernel)
 
 <br />
